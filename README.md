@@ -1,2 +1,2 @@
 # jfrog
-JFrog utils
+JFrog utilities
