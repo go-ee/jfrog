@@ -6,43 +6,43 @@ import (
 )
 
 func BuildVirtualRepoCloner(packageType PackageType,
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) (ret RepositoryCloner, err error) {
+	source *ArtifactoryManager, target *ArtifactoryManager) (ret RepositoryCloner, err error) {
 
 	switch packageType {
 	case Bower:
-		ret = NewBowerVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewBowerVirtualRepositoryCloner(source, target)
 	case Chef:
-		ret = NewChefVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewChefVirtualRepositoryCloner(source, target)
 	case Conan:
-		ret = NewConanVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewConanVirtualRepositoryCloner(source, target)
 	case Docker:
-		ret = NewDockerVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewDockerVirtualRepositoryCloner(source, target)
 	case Go:
-		ret = NewGoVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewGoVirtualRepositoryCloner(source, target)
 	case NuGet:
-		ret = NewNuGetVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewNuGetVirtualRepositoryCloner(source, target)
 	case Npm:
-		ret = NewNpmVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewNpmVirtualRepositoryCloner(source, target)
 	case Puppet:
-		ret = NewPuppetVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewPuppetVirtualRepositoryCloner(source, target)
 	case PyPi:
-		ret = NewPyPiVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewPyPiVirtualRepositoryCloner(source, target)
 	case RubyGems:
-		ret = NewRubyVirtualGemsRepositoryCloner(source, target, dryRun)
+		ret = NewRubyVirtualGemsRepositoryCloner(source, target)
 	case Generic:
-		ret = NewGenericVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewGenericVirtualRepositoryCloner(source, target)
 	case Maven:
-		ret = NewMavenVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewMavenVirtualRepositoryCloner(source, target)
 	case Helm:
-		ret = NewHelmVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewHelmVirtualRepositoryCloner(source, target)
 	case GitLfs:
-		ret = NewGitLfsVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewGitLfsVirtualRepositoryCloner(source, target)
 	case Debian:
-		ret = NewDebianVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewDebianVirtualRepositoryCloner(source, target)
 	case YUM:
-		ret = NewYumVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewYumVirtualRepositoryCloner(source, target)
 	case Gradle:
-		ret = NewGradleVirtualRepositoryCloner(source, target, dryRun)
+		ret = NewGradleVirtualRepositoryCloner(source, target)
 	default:
 		err = fmt.Errorf("repo type '%v' with package type '%v' not supported", Virtual, packageType)
 
@@ -51,9 +51,8 @@ func BuildVirtualRepoCloner(packageType PackageType,
 }
 
 func NewVirtualRepositoryClonerImpl(packageType PackageType,
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *RepositoryClonerImpl {
-	return &RepositoryClonerImpl{RepoType: Virtual, PackageType: packageType,
-		Source: source, Target: target, DryRun: dryRun}
+	source *ArtifactoryManager, target *ArtifactoryManager) *RepositoryClonerImpl {
+	return NewRepositoryCloner(Virtual, packageType, source, target)
 }
 
 type BowerVirtualRepositoryCloner struct {
@@ -61,15 +60,15 @@ type BowerVirtualRepositoryCloner struct {
 }
 
 func NewBowerVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *BowerVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *BowerVirtualRepositoryCloner {
 	return &BowerVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(Bower, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(Bower, source, target)}
 }
 
 func (o *BowerVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.BowerVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Bower(sourceRepoDetails)
 		})
 	}
@@ -81,15 +80,15 @@ type ChefVirtualRepositoryCloner struct {
 }
 
 func NewChefVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *ChefVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *ChefVirtualRepositoryCloner {
 	return &ChefVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(Chef, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(Chef, source, target)}
 }
 
 func (o *ChefVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ChefVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Chef(sourceRepoDetails)
 		})
 	}
@@ -101,15 +100,15 @@ type ConanVirtualRepositoryCloner struct {
 }
 
 func NewConanVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *ConanVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *ConanVirtualRepositoryCloner {
 	return &ConanVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(Conan, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(Conan, source, target)}
 }
 
 func (o *ConanVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ConanVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Conan(sourceRepoDetails)
 		})
 	}
@@ -121,15 +120,15 @@ type DockerVirtualRepositoryCloner struct {
 }
 
 func NewDockerVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *DockerVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *DockerVirtualRepositoryCloner {
 	return &DockerVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(Docker, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(Docker, source, target)}
 }
 
 func (o *DockerVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.DockerVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Docker(sourceRepoDetails)
 		})
 	}
@@ -141,15 +140,15 @@ type GoVirtualRepositoryCloner struct {
 }
 
 func NewGoVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *GoVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *GoVirtualRepositoryCloner {
 	return &GoVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(Go, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(Go, source, target)}
 }
 
 func (o *GoVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GoVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Go(sourceRepoDetails)
 		})
 	}
@@ -161,15 +160,15 @@ type NuGetVirtualRepositoryCloner struct {
 }
 
 func NewNuGetVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *NuGetVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *NuGetVirtualRepositoryCloner {
 	return &NuGetVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(NuGet, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(NuGet, source, target)}
 }
 
 func (o *NuGetVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.NugetVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Nuget(sourceRepoDetails)
 		})
 	}
@@ -181,15 +180,15 @@ type NpmVirtualRepositoryCloner struct {
 }
 
 func NewNpmVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *NpmVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *NpmVirtualRepositoryCloner {
 	return &NpmVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(Npm, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(Npm, source, target)}
 }
 
 func (o *NpmVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.NpmVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Npm(sourceRepoDetails)
 		})
 	}
@@ -201,15 +200,15 @@ type PuppetVirtualRepositoryCloner struct {
 }
 
 func NewPuppetVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *PuppetVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *PuppetVirtualRepositoryCloner {
 	return &PuppetVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(Puppet, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(Puppet, source, target)}
 }
 
 func (o *PuppetVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.PuppetVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Puppet(sourceRepoDetails)
 		})
 	}
@@ -221,15 +220,15 @@ type PyPiVirtualRepositoryCloner struct {
 }
 
 func NewPyPiVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *PyPiVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *PyPiVirtualRepositoryCloner {
 	return &PyPiVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(PyPi, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(PyPi, source, target)}
 }
 
 func (o *PyPiVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.PypiVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Pypi(sourceRepoDetails)
 		})
 	}
@@ -241,15 +240,15 @@ type RubyVirtualGemsRepositoryCloner struct {
 }
 
 func NewRubyVirtualGemsRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *RubyVirtualGemsRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *RubyVirtualGemsRepositoryCloner {
 	return &RubyVirtualGemsRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(RubyGems, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(RubyGems, source, target)}
 }
 
 func (o *RubyVirtualGemsRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GemsVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Gems(sourceRepoDetails)
 		})
 	}
@@ -261,15 +260,15 @@ type GenericVirtualRepositoryCloner struct {
 }
 
 func NewGenericVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *GenericVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *GenericVirtualRepositoryCloner {
 	return &GenericVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(Generic, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(Generic, source, target)}
 }
 
 func (o *GenericVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GenericVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Generic(sourceRepoDetails)
 		})
 	}
@@ -281,15 +280,15 @@ type MavenVirtualRepositoryCloner struct {
 }
 
 func NewMavenVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *MavenVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *MavenVirtualRepositoryCloner {
 	return &MavenVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(Maven, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(Maven, source, target)}
 }
 
 func (o *MavenVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.MavenVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Maven(sourceRepoDetails)
 		})
 	}
@@ -301,15 +300,15 @@ type HelmVirtualRepositoryCloner struct {
 }
 
 func NewHelmVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *HelmVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *HelmVirtualRepositoryCloner {
 	return &HelmVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(Helm, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(Helm, source, target)}
 }
 
 func (o *HelmVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.HelmVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Helm(sourceRepoDetails)
 		})
 	}
@@ -321,15 +320,15 @@ type GitLfsVirtualRepositoryCloner struct {
 }
 
 func NewGitLfsVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *GitLfsVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *GitLfsVirtualRepositoryCloner {
 	return &GitLfsVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(GitLfs, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(GitLfs, source, target)}
 }
 
 func (o *GitLfsVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GitlfsVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Gitlfs(sourceRepoDetails)
 		})
 	}
@@ -341,15 +340,15 @@ type DebianVirtualRepositoryCloner struct {
 }
 
 func NewDebianVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *DebianVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *DebianVirtualRepositoryCloner {
 	return &DebianVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(GitLfs, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(GitLfs, source, target)}
 }
 
 func (o *DebianVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.DebianVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Debian(sourceRepoDetails)
 		})
 	}
@@ -361,15 +360,15 @@ type YumVirtualRepositoryCloner struct {
 }
 
 func NewYumVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *YumVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *YumVirtualRepositoryCloner {
 	return &YumVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(YUM, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(YUM, source, target)}
 }
 
 func (o *YumVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.YumVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Yum(sourceRepoDetails)
 		})
 	}
@@ -381,15 +380,15 @@ type GradleVirtualRepositoryCloner struct {
 }
 
 func NewGradleVirtualRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *GradleVirtualRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *GradleVirtualRepositoryCloner {
 	return &GradleVirtualRepositoryCloner{
-		NewVirtualRepositoryClonerImpl(Gradle, source, target, dryRun)}
+		NewVirtualRepositoryClonerImpl(Gradle, source, target)}
 }
 
 func (o *GradleVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GradleVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateVirtualRepository().Gradle(sourceRepoDetails)
 		})
 	}

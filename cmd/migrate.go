@@ -3,13 +3,15 @@ package cmd
 import (
 	"github.com/go-ee/jfrog/core"
 	"github.com/go-ee/utils/cliu"
+	"github.com/go-ee/utils/exec"
 	"github.com/urfave/cli/v2"
+	"strings"
 )
 
 type MigrateCmd struct {
 	*cliu.BaseCommand
-	Source     *ServerDef
-	Target     *ServerDef
+	Source     *ServerFlagLabels
+	Target     *ServerFlagLabels
 	DryRunFlag *DryRunFlag
 }
 
@@ -32,9 +34,11 @@ func NewMigrateCmd() (ret *MigrateCmd) {
 	}
 
 	ret.Command.Action = func(context *cli.Context) (err error) {
+		executor := buildExecutor(ret.DryRunFlag)
+
 		cloner := core.NewCloner(
-			buildArtifactoryMigrator(ret.Source), buildArtifactoryMigrator(ret.Target),
-			ret.DryRunFlag.CurrentValue)
+			buildArtifactoryManager(ret.Source, executor),
+			buildArtifactoryManager(ret.Target, executor))
 
 		err = cloner.Clone()
 
@@ -43,11 +47,28 @@ func NewMigrateCmd() (ret *MigrateCmd) {
 	return
 }
 
-func buildArtifactoryMigrator(server *ServerDef) *core.ArtifactoryManager {
+func buildExecutor(dryRunFlag *DryRunFlag) (ret exec.Executor) {
+	if dryRunFlag.CurrentValue {
+		ret = &exec.SkipExecutor{}
+	} else {
+		ret = &exec.LogExecutor{}
+	}
+	return
+}
+
+func buildArtifactoryManager(server *ServerFlagLabels, executor exec.Executor) *core.ArtifactoryManager {
 	return &core.ArtifactoryManager{
-		Label:    server.Label,
+		Label:    buildLabel(server),
 		Url:      server.Url.CurrentValue,
 		User:     server.User.CurrentValue,
 		Password: server.Password.CurrentValue,
+
+		Executor: executor,
 	}
+}
+
+func buildLabel(server *ServerFlagLabels) (ret string) {
+	ret = strings.TrimPrefix(server.Url.CurrentValue, "https://")
+	ret = strings.Split(ret, ".")[0]
+	return ret
 }

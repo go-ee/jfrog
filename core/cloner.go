@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/go-ee/utils/exec"
 	"github.com/jfrog/jfrog-client-go/artifactory"
 	"github.com/jfrog/jfrog-client-go/artifactory/auth"
 	"github.com/jfrog/jfrog-client-go/artifactory/services"
@@ -11,18 +12,19 @@ import (
 )
 
 type Cloner struct {
-	Source      *ArtifactoryManager
-	Target      *ArtifactoryManager
-	DryRun      bool
-	repoCloners map[RepoType]map[PackageType]RepositoryCloner
+	Source *ArtifactoryManager
+	Target *ArtifactoryManager
+
+	cloners map[RepoType]map[PackageType]RepositoryCloner
 }
 
-func NewCloner(source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *Cloner {
-	return &Cloner{Source: source, Target: target, DryRun: dryRun,
-		repoCloners: map[RepoType]map[PackageType]RepositoryCloner{}}
+func NewCloner(source *ArtifactoryManager, target *ArtifactoryManager) *Cloner {
+	return &Cloner{Source: source, Target: target,
+		cloners: map[RepoType]map[PackageType]RepositoryCloner{}}
 }
 
 func (o *Cloner) Clone() (err error) {
+	logrus.Infof("clone artifactory server from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
 	if err = o.Source.Connect(); err != nil {
 		return
@@ -44,14 +46,29 @@ func (o *Cloner) Clone() (err error) {
 }
 
 func (o *Cloner) CreateReplication(repo services.RepositoryDetails) (err error) {
-	if replicationParams, findErr := o.Source.GetReplication(repo.Key); findErr != nil {
-		createReplicationParams := o.Target.buildCreateReplicationParams(repo)
-		logrus.Infof("create replication: %v", createReplicationParams.Url)
-		if !o.DryRun {
-			err = o.Source.CreateReplication(*createReplicationParams)
+	repoType := RepoType(repo.Type)
+	switch repoType {
+	case Local:
+		if replicationParams, findErr := o.Source.GetReplication(repo.Key); findErr != nil {
+			createReplicationParams := o.Target.buildCreateReplicationParams(repo)
+			err = o.Source.Execute(fmt.Sprintf("create PUSH replication: %v", createReplicationParams.Url), func() error {
+				return o.Source.CreateReplication(*createReplicationParams)
+			})
+		} else {
+			logrus.Debugf("%v: replication already configured %v", repo.Url, replicationParams)
 		}
-	} else {
-		logrus.Debugf("%v: replication already configured %v", repo.Url, replicationParams)
+	case Remote:
+		if replicationParams, findErr := o.Target.GetReplication(repo.Key); findErr != nil {
+			createReplicationParams := o.Source.buildCreateReplicationParams(repo)
+			logrus.Infof("create replication: %v", createReplicationParams.Url)
+			err = o.Target.Execute(fmt.Sprintf("create PULL replication: %v", createReplicationParams.Url), func() error {
+				return o.Target.CreateReplication(*createReplicationParams)
+			})
+		} else {
+			logrus.Debugf("%v: replication already configured %v", repo.Url, replicationParams)
+		}
+	default:
+		logrus.Infof("no need for replication of '%v' repository '%v'", repoType, repo.Url)
 	}
 	return err
 }
@@ -69,39 +86,36 @@ func (o *Cloner) CloneRepo(sourceRepo services.RepositoryDetails) (err error) {
 
 		var repoCloner RepositoryCloner
 		if repoCloner, err = o.getRepoCloner(repoType, packageType); err == nil {
-			logrus.Infof("clone: %v, %v, %v",
-				sourceRepo.Url, sourceRepo.Type, sourceRepo.PackageType)
-
 			err = repoCloner.Clone(sourceRepo.Key)
 		}
 	} else {
-		logrus.Infof("repo already cloned %v", sourceRepo.Url)
+		logrus.Infof(o.Target.buildLog("repo already exists " + sourceRepo.Key))
 	}
 	return
 }
 
 func (o *Cloner) getRepoCloner(repoTypo RepoType, packageType PackageType) (ret RepositoryCloner, err error) {
-	typedRepoCloners := o.repoCloners[repoTypo]
+	typedRepoCloners := o.cloners[repoTypo]
 	if typedRepoCloners == nil {
 		typedRepoCloners = map[PackageType]RepositoryCloner{}
-		o.repoCloners[repoTypo] = typedRepoCloners
+		o.cloners[repoTypo] = typedRepoCloners
 	}
 
 	if ret = typedRepoCloners[packageType]; ret == nil {
 		switch repoTypo {
 		case Local:
-			ret, err = BuildLocalRepoCloner(packageType, o.Source, o.Target, o.DryRun)
+			ret, err = BuildLocalRepoCloner(packageType, o.Source, o.Target)
 		case Remote:
-			ret, err = BuildRemoteRepoCloner(packageType, o.Source, o.Target, o.DryRun)
+			ret, err = BuildRemoteRepoCloner(packageType, o.Source, o.Target)
 		case Virtual:
-			ret, err = BuildVirtualRepoCloner(packageType, o.Source, o.Target, o.DryRun)
+			ret, err = BuildVirtualRepoCloner(packageType, o.Source, o.Target)
 		case Federated:
-			ret, err = BuildFederatedRepoCloner(packageType, o.Source, o.Target, o.DryRun)
+			ret, err = BuildFederatedRepoCloner(packageType, o.Source, o.Target)
 		default:
 			err = fmt.Errorf("repo type '%v' not supported", repoTypo)
 			return
 		}
-		o.repoCloners[repoTypo] = typedRepoCloners
+		o.cloners[repoTypo] = typedRepoCloners
 	}
 	return
 }
@@ -112,18 +126,19 @@ type ArtifactoryManager struct {
 	Url      string
 	User     string
 	Password string
-	DryRun   bool
+
+	Executor exec.Executor
 }
 
 func (o *ArtifactoryManager) Connect() (err error) {
-	rtDetails := auth.NewArtifactoryDetails()
-	rtDetails.SetUrl(o.Url)
-	rtDetails.SetUser(o.User)
-	rtDetails.SetPassword(o.Password)
+	details := auth.NewArtifactoryDetails()
+	details.SetUrl(o.Url)
+	details.SetUser(o.User)
+	details.SetPassword(o.Password)
 
 	var serviceConfig config.Config
 	if serviceConfig, err = config.NewConfigBuilder().
-		SetServiceDetails(rtDetails).
+		SetServiceDetails(details).
 		SetDryRun(false).
 		//SetHttpClient(myCustomClient).
 		Build(); err != nil {
@@ -159,6 +174,14 @@ func (o *ArtifactoryManager) buildCreateReplicationParams(
 func (o *ArtifactoryManager) buildReplicationUrl(repo services.RepositoryDetails) (ret string) {
 	return fmt.Sprintf(
 		"%v%v%v", o.Url, buildRepoPackageTypeUrlPrefix(repo), repo.Key)
+}
+
+func (o *ArtifactoryManager) buildLog(info string) (ret string) {
+	return fmt.Sprintf("%v: %v", o.Label, info)
+}
+
+func (o *ArtifactoryManager) Execute(info string, execute func() error) (err error) {
+	return o.Executor.Execute(o.buildLog(info), execute)
 }
 
 func buildRepoPackageTypeUrlPrefix(repo services.RepositoryDetails) (ret string) {
@@ -237,17 +260,18 @@ type RepositoryClonerImpl struct {
 	PackageType PackageType
 	Source      *ArtifactoryManager
 	Target      *ArtifactoryManager
-	DryRun      bool
+
+	labelCreateRepository string
 }
 
-func (o *RepositoryClonerImpl) run(operation string, repoKey string, execute func() error) (err error) {
-	logrus.Infof("%v(%v): %v=>%v", operation, repoKey, o.Source.Url, o.Target.Url)
-	if !o.DryRun {
-		//err = execute()
+func (o *RepositoryClonerImpl) buildLabelCreateRepository(repoKey string) string {
+	return o.labelCreateRepository + repoKey
+}
+
+func NewRepositoryCloner(repoType RepoType, packageType PackageType,
+	source *ArtifactoryManager, target *ArtifactoryManager) *RepositoryClonerImpl {
+	return &RepositoryClonerImpl{RepoType: repoType, PackageType: packageType,
+		Source: source, Target: target,
+		labelCreateRepository: fmt.Sprintf("create repository[%v,%v] ", repoType, packageType),
 	}
-	return
-}
-
-func (o *RepositoryClonerImpl) clone(repoKey string, execute func() error) (err error) {
-	return o.run("clone", repoKey, execute)
 }

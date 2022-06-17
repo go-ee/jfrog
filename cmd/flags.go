@@ -6,16 +6,14 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type ServerDef struct {
-	Label    string
+type ServerFlagLabels struct {
 	Url      *UrlFlag
 	User     *UserFlag
 	Password *PasswordTag
 }
 
-func NewServerDef(label string) *ServerDef {
-	return &ServerDef{
-		Label:    label,
+func NewServerDef(label string) *ServerFlagLabels {
+	return &ServerFlagLabels{
 		Url:      NewUrlFlag(buildLabelCommandPrefix(label)),
 		User:     NewUserFlag(buildLabelCommandPrefix(label)),
 		Password: NewPasswordFlag(buildLabelCommandPrefix(label)),

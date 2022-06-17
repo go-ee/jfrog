@@ -6,51 +6,51 @@ import (
 )
 
 func BuildLocalRepoCloner(packageType PackageType,
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) (ret RepositoryCloner, err error) {
+	source *ArtifactoryManager, target *ArtifactoryManager) (ret RepositoryCloner, err error) {
 
 	switch packageType {
 	case Bower:
-		ret = NewBowerLocalRepositoryCloner(source, target, dryRun)
+		ret = NewBowerLocalRepositoryCloner(source, target)
 	case Chef:
-		ret = NewChefLocalRepositoryCloner(source, target, dryRun)
+		ret = NewChefLocalRepositoryCloner(source, target)
 	case CocoaPods:
-		ret = NewCocoaPodsLocalPodsRepositoryCloner(source, target, dryRun)
+		ret = NewCocoaPodsLocalPodsRepositoryCloner(source, target)
 	case Conan:
-		ret = NewConanLocalRepositoryCloner(source, target, dryRun)
+		ret = NewConanLocalRepositoryCloner(source, target)
 	case Docker:
-		ret = NewDockerLocalRepositoryCloner(source, target, dryRun)
+		ret = NewDockerLocalRepositoryCloner(source, target)
 	case Go:
-		ret = NewGoLocalRepositoryCloner(source, target, dryRun)
+		ret = NewGoLocalRepositoryCloner(source, target)
 	case NuGet:
-		ret = NewNuGetLocalRepositoryCloner(source, target, dryRun)
+		ret = NewNuGetLocalRepositoryCloner(source, target)
 	case Npm:
-		ret = NewNpmLocalRepositoryCloner(source, target, dryRun)
+		ret = NewNpmLocalRepositoryCloner(source, target)
 	case PhpComposer:
-		ret = NewPhpComposerLocalRepositoryCloner(source, target, dryRun)
+		ret = NewPhpComposerLocalRepositoryCloner(source, target)
 	case Puppet:
-		ret = NewPuppetLocalRepositoryCloner(source, target, dryRun)
+		ret = NewPuppetLocalRepositoryCloner(source, target)
 	case PyPi:
-		ret = NewPyPiLocalRepositoryCloner(source, target, dryRun)
+		ret = NewPyPiLocalRepositoryCloner(source, target)
 	case RubyGems:
-		ret = NewRubyLocalGemsRepositoryCloner(source, target, dryRun)
+		ret = NewRubyLocalGemsRepositoryCloner(source, target)
 	case Generic:
-		ret = NewGenericLocalRepositoryCloner(source, target, dryRun)
+		ret = NewGenericLocalRepositoryCloner(source, target)
 	case Maven:
-		ret = NewMavenLocalRepositoryCloner(source, target, dryRun)
+		ret = NewMavenLocalRepositoryCloner(source, target)
 	case Helm:
-		ret = NewHelmLocalRepositoryCloner(source, target, dryRun)
+		ret = NewHelmLocalRepositoryCloner(source, target)
 	case GitLfs:
-		ret = NewGitLfsLocalRepositoryCloner(source, target, dryRun)
+		ret = NewGitLfsLocalRepositoryCloner(source, target)
 	case Debian:
-		ret = NewDebianLocalRepositoryCloner(source, target, dryRun)
+		ret = NewDebianLocalRepositoryCloner(source, target)
 	case YUM:
-		ret = NewYumLocalRepositoryCloner(source, target, dryRun)
+		ret = NewYumLocalRepositoryCloner(source, target)
 	case Vagrant:
-		ret = NewVagrantLocalRepositoryCloner(source, target, dryRun)
+		ret = NewVagrantLocalRepositoryCloner(source, target)
 	case Cargo:
-		ret = NewCargoLocalRepositoryCloner(source, target, dryRun)
+		ret = NewCargoLocalRepositoryCloner(source, target)
 	case Gradle:
-		ret = NewGradleLocalRepositoryCloner(source, target, dryRun)
+		ret = NewGradleLocalRepositoryCloner(source, target)
 	default:
 		err = fmt.Errorf("repo type '%v' with package type '%v' not supported", Local, packageType)
 
@@ -59,9 +59,8 @@ func BuildLocalRepoCloner(packageType PackageType,
 }
 
 func NewLocalRepositoryClonerImpl(packageType PackageType,
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *RepositoryClonerImpl {
-	return &RepositoryClonerImpl{RepoType: Local, PackageType: packageType,
-		Source: source, Target: target, DryRun: dryRun}
+	source *ArtifactoryManager, target *ArtifactoryManager) *RepositoryClonerImpl {
+	return NewRepositoryCloner(Local, packageType, source, target)
 }
 
 type BowerLocalRepositoryCloner struct {
@@ -69,15 +68,15 @@ type BowerLocalRepositoryCloner struct {
 }
 
 func NewBowerLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *BowerLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *BowerLocalRepositoryCloner {
 	return &BowerLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(Bower, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(Bower, source, target)}
 }
 
 func (o *BowerLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.BowerLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Bower(sourceRepoDetails)
 		})
 	}
@@ -89,15 +88,15 @@ type ChefLocalRepositoryCloner struct {
 }
 
 func NewChefLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *ChefLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *ChefLocalRepositoryCloner {
 	return &ChefLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(Chef, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(Chef, source, target)}
 }
 
 func (o *ChefLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ChefLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Chef(sourceRepoDetails)
 		})
 	}
@@ -109,15 +108,15 @@ type CocoaPodsLocalPodsRepositoryCloner struct {
 }
 
 func NewCocoaPodsLocalPodsRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *CocoaPodsLocalPodsRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *CocoaPodsLocalPodsRepositoryCloner {
 	return &CocoaPodsLocalPodsRepositoryCloner{
-		NewLocalRepositoryClonerImpl(CocoaPods, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(CocoaPods, source, target)}
 }
 
 func (o *CocoaPodsLocalPodsRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.CocoapodsLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Cocoapods(sourceRepoDetails)
 		})
 	}
@@ -129,15 +128,15 @@ type ConanLocalRepositoryCloner struct {
 }
 
 func NewConanLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *ConanLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *ConanLocalRepositoryCloner {
 	return &ConanLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(Conan, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(Conan, source, target)}
 }
 
 func (o *ConanLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ConanLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Conan(sourceRepoDetails)
 		})
 	}
@@ -149,15 +148,15 @@ type DockerLocalRepositoryCloner struct {
 }
 
 func NewDockerLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *DockerLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *DockerLocalRepositoryCloner {
 	return &DockerLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(Docker, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(Docker, source, target)}
 }
 
 func (o *DockerLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.DockerLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Docker(sourceRepoDetails)
 		})
 	}
@@ -169,15 +168,15 @@ type GoLocalRepositoryCloner struct {
 }
 
 func NewGoLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *GoLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *GoLocalRepositoryCloner {
 	return &GoLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(Go, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(Go, source, target)}
 }
 
 func (o *GoLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GoLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Go(sourceRepoDetails)
 		})
 	}
@@ -189,15 +188,15 @@ type NuGetLocalRepositoryCloner struct {
 }
 
 func NewNuGetLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *NuGetLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *NuGetLocalRepositoryCloner {
 	return &NuGetLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(NuGet, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(NuGet, source, target)}
 }
 
 func (o *NuGetLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.NugetLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Nuget(sourceRepoDetails)
 		})
 	}
@@ -209,15 +208,15 @@ type NpmLocalRepositoryCloner struct {
 }
 
 func NewNpmLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *NpmLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *NpmLocalRepositoryCloner {
 	return &NpmLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(Npm, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(Npm, source, target)}
 }
 
 func (o *NpmLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.NpmLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Npm(sourceRepoDetails)
 		})
 	}
@@ -229,15 +228,15 @@ type PhpComposerLocalRepositoryCloner struct {
 }
 
 func NewPhpComposerLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *PhpComposerLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *PhpComposerLocalRepositoryCloner {
 	return &PhpComposerLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(PhpComposer, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(PhpComposer, source, target)}
 }
 
 func (o *PhpComposerLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ComposerLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Composer(sourceRepoDetails)
 		})
 	}
@@ -249,15 +248,15 @@ type PuppetLocalRepositoryCloner struct {
 }
 
 func NewPuppetLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *PuppetLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *PuppetLocalRepositoryCloner {
 	return &PuppetLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(Puppet, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(Puppet, source, target)}
 }
 
 func (o *PuppetLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.PuppetLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Puppet(sourceRepoDetails)
 		})
 	}
@@ -269,15 +268,15 @@ type PypiLocalRepositoryCloner struct {
 }
 
 func NewPyPiLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *PypiLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *PypiLocalRepositoryCloner {
 	return &PypiLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(PyPi, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(PyPi, source, target)}
 }
 
 func (o *PypiLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.PypiLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Pypi(sourceRepoDetails)
 		})
 	}
@@ -289,15 +288,15 @@ type RubyLocalGemsRepositoryCloner struct {
 }
 
 func NewRubyLocalGemsRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *RubyLocalGemsRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *RubyLocalGemsRepositoryCloner {
 	return &RubyLocalGemsRepositoryCloner{
-		NewLocalRepositoryClonerImpl(RubyGems, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(RubyGems, source, target)}
 }
 
 func (o *RubyLocalGemsRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GemsLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Gems(sourceRepoDetails)
 		})
 	}
@@ -309,15 +308,15 @@ type GenericLocalRepositoryCloner struct {
 }
 
 func NewGenericLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *GenericLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *GenericLocalRepositoryCloner {
 	return &GenericLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(Generic, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(Generic, source, target)}
 }
 
 func (o *GenericLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GenericLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Generic(sourceRepoDetails)
 		})
 	}
@@ -329,15 +328,15 @@ type MavenLocalRepositoryCloner struct {
 }
 
 func NewMavenLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *MavenLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *MavenLocalRepositoryCloner {
 	return &MavenLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(Maven, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(Maven, source, target)}
 }
 
 func (o *MavenLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.MavenLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Maven(sourceRepoDetails)
 		})
 	}
@@ -349,15 +348,15 @@ type HelmLocalRepositoryCloner struct {
 }
 
 func NewHelmLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *HelmLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *HelmLocalRepositoryCloner {
 	return &HelmLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(Helm, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(Helm, source, target)}
 }
 
 func (o *HelmLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.HelmLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Helm(sourceRepoDetails)
 		})
 	}
@@ -369,15 +368,15 @@ type GitLfsLocalRepositoryCloner struct {
 }
 
 func NewGitLfsLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *GitLfsLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *GitLfsLocalRepositoryCloner {
 	return &GitLfsLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(GitLfs, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(GitLfs, source, target)}
 }
 
 func (o *GitLfsLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GitlfsLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Gitlfs(sourceRepoDetails)
 		})
 	}
@@ -389,15 +388,15 @@ type DebianLocalRepositoryCloner struct {
 }
 
 func NewDebianLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *DebianLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *DebianLocalRepositoryCloner {
 	return &DebianLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(GitLfs, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(GitLfs, source, target)}
 }
 
 func (o *DebianLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.DebianLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Debian(sourceRepoDetails)
 		})
 	}
@@ -409,15 +408,15 @@ type YumLocalRepositoryCloner struct {
 }
 
 func NewYumLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *YumLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *YumLocalRepositoryCloner {
 	return &YumLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(YUM, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(YUM, source, target)}
 }
 
 func (o *YumLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.YumLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Yum(sourceRepoDetails)
 		})
 	}
@@ -429,15 +428,15 @@ type VagrantLocalRepositoryCloner struct {
 }
 
 func NewVagrantLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *VagrantLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *VagrantLocalRepositoryCloner {
 	return &VagrantLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(YUM, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(YUM, source, target)}
 }
 
 func (o *VagrantLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.VagrantLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Vagrant(sourceRepoDetails)
 		})
 	}
@@ -449,15 +448,15 @@ type CargoLocalRepositoryCloner struct {
 }
 
 func NewCargoLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *CargoLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *CargoLocalRepositoryCloner {
 	return &CargoLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(Cargo, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(Cargo, source, target)}
 }
 
 func (o *CargoLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.CargoLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Cargo(sourceRepoDetails)
 		})
 	}
@@ -469,15 +468,15 @@ type GradleLocalRepositoryCloner struct {
 }
 
 func NewGradleLocalRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *GradleLocalRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *GradleLocalRepositoryCloner {
 	return &GradleLocalRepositoryCloner{
-		NewLocalRepositoryClonerImpl(Gradle, source, target, dryRun)}
+		NewLocalRepositoryClonerImpl(Gradle, source, target)}
 }
 
 func (o *GradleLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GradleLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateLocalRepository().Gradle(sourceRepoDetails)
 		})
 	}

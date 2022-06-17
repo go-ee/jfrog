@@ -6,51 +6,51 @@ import (
 )
 
 func BuildFederatedRepoCloner(packageType PackageType,
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) (ret RepositoryCloner, err error) {
+	source *ArtifactoryManager, target *ArtifactoryManager) (ret RepositoryCloner, err error) {
 
 	switch packageType {
 	case Bower:
-		ret = NewBowerFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewBowerFederatedRepositoryCloner(source, target)
 	case Chef:
-		ret = NewChefFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewChefFederatedRepositoryCloner(source, target)
 	case CocoaPods:
-		ret = NewCocoaPodsFederatedPodsRepositoryCloner(source, target, dryRun)
+		ret = NewCocoaPodsFederatedPodsRepositoryCloner(source, target)
 	case Conan:
-		ret = NewConanFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewConanFederatedRepositoryCloner(source, target)
 	case Docker:
-		ret = NewDockerFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewDockerFederatedRepositoryCloner(source, target)
 	case Go:
-		ret = NewGoFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewGoFederatedRepositoryCloner(source, target)
 	case NuGet:
-		ret = NewNuGetFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewNuGetFederatedRepositoryCloner(source, target)
 	case Npm:
-		ret = NewNpmFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewNpmFederatedRepositoryCloner(source, target)
 	case PhpComposer:
-		ret = NewPhpComposerFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewPhpComposerFederatedRepositoryCloner(source, target)
 	case Puppet:
-		ret = NewPuppetFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewPuppetFederatedRepositoryCloner(source, target)
 	case PyPi:
-		ret = NewPyPiFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewPyPiFederatedRepositoryCloner(source, target)
 	case RubyGems:
-		ret = NewRubyFederatedGemsRepositoryCloner(source, target, dryRun)
+		ret = NewRubyFederatedGemsRepositoryCloner(source, target)
 	case Generic:
-		ret = NewGenericFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewGenericFederatedRepositoryCloner(source, target)
 	case Maven:
-		ret = NewMavenFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewMavenFederatedRepositoryCloner(source, target)
 	case Helm:
-		ret = NewHelmFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewHelmFederatedRepositoryCloner(source, target)
 	case GitLfs:
-		ret = NewGitLfsFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewGitLfsFederatedRepositoryCloner(source, target)
 	case Debian:
-		ret = NewDebianFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewDebianFederatedRepositoryCloner(source, target)
 	case YUM:
-		ret = NewYumFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewYumFederatedRepositoryCloner(source, target)
 	case Vagrant:
-		ret = NewVagrantFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewVagrantFederatedRepositoryCloner(source, target)
 	case Cargo:
-		ret = NewCargoFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewCargoFederatedRepositoryCloner(source, target)
 	case Gradle:
-		ret = NewGradleFederatedRepositoryCloner(source, target, dryRun)
+		ret = NewGradleFederatedRepositoryCloner(source, target)
 	default:
 		err = fmt.Errorf("repo type '%v' with package type '%v' not supported", Federated, packageType)
 
@@ -59,9 +59,8 @@ func BuildFederatedRepoCloner(packageType PackageType,
 }
 
 func NewFederatedRepositoryClonerImpl(packageType PackageType,
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *RepositoryClonerImpl {
-	return &RepositoryClonerImpl{RepoType: Federated, PackageType: packageType,
-		Source: source, Target: target, DryRun: dryRun}
+	source *ArtifactoryManager, target *ArtifactoryManager) *RepositoryClonerImpl {
+	return NewRepositoryCloner(Federated, packageType, source, target)
 }
 
 type BowerFederatedRepositoryCloner struct {
@@ -69,15 +68,15 @@ type BowerFederatedRepositoryCloner struct {
 }
 
 func NewBowerFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *BowerFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *BowerFederatedRepositoryCloner {
 	return &BowerFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(Bower, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(Bower, source, target)}
 }
 
 func (o *BowerFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.BowerFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Bower(sourceRepoDetails)
 		})
 	}
@@ -89,15 +88,15 @@ type ChefFederatedRepositoryCloner struct {
 }
 
 func NewChefFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *ChefFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *ChefFederatedRepositoryCloner {
 	return &ChefFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(Chef, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(Chef, source, target)}
 }
 
 func (o *ChefFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ChefFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Chef(sourceRepoDetails)
 		})
 	}
@@ -109,15 +108,15 @@ type CocoaPodsFederatedPodsRepositoryCloner struct {
 }
 
 func NewCocoaPodsFederatedPodsRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *CocoaPodsFederatedPodsRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *CocoaPodsFederatedPodsRepositoryCloner {
 	return &CocoaPodsFederatedPodsRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(CocoaPods, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(CocoaPods, source, target)}
 }
 
 func (o *CocoaPodsFederatedPodsRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.CocoapodsFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Cocoapods(sourceRepoDetails)
 		})
 	}
@@ -129,15 +128,15 @@ type ConanFederatedRepositoryCloner struct {
 }
 
 func NewConanFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *ConanFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *ConanFederatedRepositoryCloner {
 	return &ConanFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(Conan, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(Conan, source, target)}
 }
 
 func (o *ConanFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ConanFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Conan(sourceRepoDetails)
 		})
 	}
@@ -149,15 +148,15 @@ type DockerFederatedRepositoryCloner struct {
 }
 
 func NewDockerFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *DockerFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *DockerFederatedRepositoryCloner {
 	return &DockerFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(Docker, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(Docker, source, target)}
 }
 
 func (o *DockerFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.DockerFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Docker(sourceRepoDetails)
 		})
 	}
@@ -169,15 +168,15 @@ type GoFederatedRepositoryCloner struct {
 }
 
 func NewGoFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *GoFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *GoFederatedRepositoryCloner {
 	return &GoFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(Go, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(Go, source, target)}
 }
 
 func (o *GoFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GoFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Go(sourceRepoDetails)
 		})
 	}
@@ -189,15 +188,15 @@ type NuGetFederatedRepositoryCloner struct {
 }
 
 func NewNuGetFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *NuGetFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *NuGetFederatedRepositoryCloner {
 	return &NuGetFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(NuGet, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(NuGet, source, target)}
 }
 
 func (o *NuGetFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.NugetFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Nuget(sourceRepoDetails)
 		})
 	}
@@ -209,15 +208,15 @@ type NpmFederatedRepositoryCloner struct {
 }
 
 func NewNpmFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *NpmFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *NpmFederatedRepositoryCloner {
 	return &NpmFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(Npm, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(Npm, source, target)}
 }
 
 func (o *NpmFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.NpmFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Npm(sourceRepoDetails)
 		})
 	}
@@ -229,15 +228,15 @@ type PhpComposerFederatedRepositoryCloner struct {
 }
 
 func NewPhpComposerFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *PhpComposerFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *PhpComposerFederatedRepositoryCloner {
 	return &PhpComposerFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(PhpComposer, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(PhpComposer, source, target)}
 }
 
 func (o *PhpComposerFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ComposerFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Composer(sourceRepoDetails)
 		})
 	}
@@ -249,15 +248,15 @@ type PuppetFederatedRepositoryCloner struct {
 }
 
 func NewPuppetFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *PuppetFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *PuppetFederatedRepositoryCloner {
 	return &PuppetFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(Puppet, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(Puppet, source, target)}
 }
 
 func (o *PuppetFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.PuppetFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Puppet(sourceRepoDetails)
 		})
 	}
@@ -269,15 +268,15 @@ type PyPiFederatedRepositoryCloner struct {
 }
 
 func NewPyPiFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *PyPiFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *PyPiFederatedRepositoryCloner {
 	return &PyPiFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(PyPi, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(PyPi, source, target)}
 }
 
 func (o *PyPiFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.PuppetFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Puppet(sourceRepoDetails)
 		})
 	}
@@ -289,15 +288,15 @@ type RubyFederatedGemsRepositoryCloner struct {
 }
 
 func NewRubyFederatedGemsRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *RubyFederatedGemsRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *RubyFederatedGemsRepositoryCloner {
 	return &RubyFederatedGemsRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(RubyGems, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(RubyGems, source, target)}
 }
 
 func (o *RubyFederatedGemsRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GemsFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Gems(sourceRepoDetails)
 		})
 	}
@@ -309,15 +308,15 @@ type GenericFederatedRepositoryCloner struct {
 }
 
 func NewGenericFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *GenericFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *GenericFederatedRepositoryCloner {
 	return &GenericFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(Generic, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(Generic, source, target)}
 }
 
 func (o *GenericFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GenericFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Generic(sourceRepoDetails)
 		})
 	}
@@ -329,15 +328,15 @@ type MavenFederatedRepositoryCloner struct {
 }
 
 func NewMavenFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *MavenFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *MavenFederatedRepositoryCloner {
 	return &MavenFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(Maven, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(Maven, source, target)}
 }
 
 func (o *MavenFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.MavenFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Maven(sourceRepoDetails)
 		})
 	}
@@ -349,15 +348,15 @@ type HelmFederatedRepositoryCloner struct {
 }
 
 func NewHelmFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *HelmFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *HelmFederatedRepositoryCloner {
 	return &HelmFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(Helm, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(Helm, source, target)}
 }
 
 func (o *HelmFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.HelmFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Helm(sourceRepoDetails)
 		})
 	}
@@ -369,15 +368,15 @@ type GitLfsFederatedRepositoryCloner struct {
 }
 
 func NewGitLfsFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *GitLfsFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *GitLfsFederatedRepositoryCloner {
 	return &GitLfsFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(GitLfs, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(GitLfs, source, target)}
 }
 
 func (o *GitLfsFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GitlfsFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Gitlfs(sourceRepoDetails)
 		})
 	}
@@ -389,15 +388,15 @@ type DebianFederatedRepositoryCloner struct {
 }
 
 func NewDebianFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *DebianFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *DebianFederatedRepositoryCloner {
 	return &DebianFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(GitLfs, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(GitLfs, source, target)}
 }
 
 func (o *DebianFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.DebianFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Debian(sourceRepoDetails)
 		})
 	}
@@ -409,15 +408,15 @@ type YumFederatedRepositoryCloner struct {
 }
 
 func NewYumFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *YumFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *YumFederatedRepositoryCloner {
 	return &YumFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(YUM, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(YUM, source, target)}
 }
 
 func (o *YumFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.YumFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Yum(sourceRepoDetails)
 		})
 	}
@@ -429,15 +428,15 @@ type VagrantFederatedRepositoryCloner struct {
 }
 
 func NewVagrantFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *VagrantFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *VagrantFederatedRepositoryCloner {
 	return &VagrantFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(YUM, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(YUM, source, target)}
 }
 
 func (o *VagrantFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.VagrantFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Vagrant(sourceRepoDetails)
 		})
 	}
@@ -449,15 +448,15 @@ type CargoFederatedRepositoryCloner struct {
 }
 
 func NewCargoFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *CargoFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *CargoFederatedRepositoryCloner {
 	return &CargoFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(Cargo, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(Cargo, source, target)}
 }
 
 func (o *CargoFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.CargoFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Cargo(sourceRepoDetails)
 		})
 	}
@@ -469,15 +468,15 @@ type GradleFederatedRepositoryCloner struct {
 }
 
 func NewGradleFederatedRepositoryCloner(
-	source *ArtifactoryManager, target *ArtifactoryManager, dryRun bool) *GradleFederatedRepositoryCloner {
+	source *ArtifactoryManager, target *ArtifactoryManager) *GradleFederatedRepositoryCloner {
 	return &GradleFederatedRepositoryCloner{
-		NewFederatedRepositoryClonerImpl(Gradle, source, target, dryRun)}
+		NewFederatedRepositoryClonerImpl(Gradle, source, target)}
 }
 
 func (o *GradleFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GradleFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
-		err = o.clone(repoKey, func() error {
+		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
 			return o.Target.CreateFederatedRepository().Gradle(sourceRepoDetails)
 		})
 	}
