@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-ee/utils/cliu"
 	"github.com/urfave/cli/v2"
+	"strings"
 )
 
 type ServerFlagLabels struct {
@@ -18,6 +19,12 @@ func NewServerDef(label string) *ServerFlagLabels {
 		User:     NewUserFlag(buildLabelCommandPrefix(label)),
 		Password: NewPasswordFlag(buildLabelCommandPrefix(label)),
 	}
+}
+
+func (o *ServerFlagLabels) BuildLabel() (ret string) {
+	ret = strings.TrimPrefix(o.Url.CurrentValue, "https://")
+	ret = strings.Split(ret, ".")[0]
+	return ret
 }
 
 func buildLabelCommandPrefix(label string) string {
@@ -65,5 +72,16 @@ func NewDryRunFlag() *DryRunFlag {
 	return &DryRunFlag{cliu.NewBoolFlag(&cli.BoolFlag{
 		Name:  fmt.Sprintf("dryRun"),
 		Usage: fmt.Sprintf("Connect to servers and proceed with migration logic without modification."),
+	})}
+}
+
+type RepoKeyFlag struct {
+	*cliu.StringFlag
+}
+
+func NewRepoKeyFlag() *RepoKeyFlag {
+	return &RepoKeyFlag{cliu.NewStringFlag(&cli.StringFlag{
+		Name:  fmt.Sprintf("repo"),
+		Usage: fmt.Sprintf("Repository key"),
 	})}
 }
