@@ -36,7 +36,6 @@ func (o *Cloner) Clone() (err error) {
 
 	repos, err = o.Source.GetAllRepositories()
 	for _, repo := range *repos {
-		logrus.Infof("migrate %v (%v)", repo.Url, repo.PackageType)
 		if err = o.CloneRepo(repo); err != nil {
 			return
 		}
@@ -70,6 +69,9 @@ func (o *Cloner) CloneRepo(sourceRepo services.RepositoryDetails) (err error) {
 
 		var repoCloner RepositoryCloner
 		if repoCloner, err = o.getRepoCloner(repoType, packageType); err == nil {
+			logrus.Infof("clone: %v, %v, %v",
+				sourceRepo.Url, sourceRepo.Type, sourceRepo.PackageType)
+
 			err = repoCloner.Clone(sourceRepo.Key)
 		}
 	} else {
@@ -238,14 +240,14 @@ type RepositoryClonerImpl struct {
 	DryRun      bool
 }
 
-func (o *RepositoryClonerImpl) run(repoKey string, label string, execute func() error) (err error) {
-	logrus.Infof("%v(%v): %v=>%v", label, repoKey, o.Source.Label, o.Target.Label)
+func (o *RepositoryClonerImpl) run(operation string, repoKey string, execute func() error) (err error) {
+	logrus.Infof("%v(%v): %v=>%v", operation, repoKey, o.Source.Url, o.Target.Url)
 	if !o.DryRun {
-		err = execute()
+		//err = execute()
 	}
 	return
 }
 
 func (o *RepositoryClonerImpl) clone(repoKey string, execute func() error) (err error) {
-	return o.run(repoKey, "clone", execute)
+	return o.run("clone", repoKey, execute)
 }
