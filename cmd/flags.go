@@ -7,6 +7,7 @@ import (
 )
 
 type ServerDef struct {
+	Label    string
 	Url      *UrlFlag
 	User     *UserFlag
 	Password *PasswordTag
@@ -14,10 +15,15 @@ type ServerDef struct {
 
 func NewServerDef(label string) *ServerDef {
 	return &ServerDef{
-		Url:      NewUrlFlag(label),
-		User:     NewUserFlag(label),
-		Password: NewPasswordFlag(label),
+		Label:    label,
+		Url:      NewUrlFlag(buildLabelCommandPrefix(label)),
+		User:     NewUserFlag(buildLabelCommandPrefix(label)),
+		Password: NewPasswordFlag(buildLabelCommandPrefix(label)),
 	}
+}
+
+func buildLabelCommandPrefix(label string) string {
+	return fmt.Sprintf("%v-", label)
 }
 
 type UrlFlag struct {

@@ -16,8 +16,8 @@ type MigrateCmd struct {
 func NewMigrateCmd() (ret *MigrateCmd) {
 	ret = &MigrateCmd{
 		BaseCommand: &cliu.BaseCommand{},
-		Source:      NewServerDef("source-"),
-		Target:      NewServerDef("target-"),
+		Source:      NewServerDef("source"),
+		Target:      NewServerDef("target"),
 		DryRunFlag:  NewDryRunFlag(),
 	}
 
@@ -32,21 +32,20 @@ func NewMigrateCmd() (ret *MigrateCmd) {
 	}
 
 	ret.Command.Action = func(context *cli.Context) (err error) {
-		migrator := &core.Migrator{
-			Source: buildArtifactoryMigrator(ret.Source),
-			Target: buildArtifactoryMigrator(ret.Target),
-			DryRun: ret.DryRunFlag.CurrentValue,
-		}
+		cloner := core.NewCloner(
+			buildArtifactoryMigrator(ret.Source), buildArtifactoryMigrator(ret.Target),
+			ret.DryRunFlag.CurrentValue)
 
-		err = migrator.Migrate()
+		err = cloner.Clone()
 
 		return
 	}
 	return
 }
 
-func buildArtifactoryMigrator(server *ServerDef) *core.ArtifactoryMigrator {
-	return &core.ArtifactoryMigrator{
+func buildArtifactoryMigrator(server *ServerDef) *core.ArtifactoryManager {
+	return &core.ArtifactoryManager{
+		Label:    server.Label,
 		Url:      server.Url.CurrentValue,
 		User:     server.User.CurrentValue,
 		Password: server.Password.CurrentValue,
