@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/go-ee/jfrog/core"
+	"github.com/go-ee/jfrog/syncer"
 	"github.com/urfave/cli/v2"
 )
 
@@ -27,7 +27,7 @@ func NewMigrateReposCmd() (ret *MigrateReposCmd) {
 	ret.Command.Action = func(context *cli.Context) error {
 		executor := buildExecutor(ret.DryRunFlag)
 
-		syncer, err := core.NewSyncerAndConnect(
+		syncer, err := syncer.NewSyncerAndConnect(
 			buildArtifactoryManager(ret.Source, executor),
 			buildArtifactoryManager(ret.Target, executor))
 

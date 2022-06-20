@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/go-ee/jfrog/core"
+	"github.com/go-ee/jfrog/syncer"
 	"github.com/go-ee/utils/cliu"
 	"github.com/go-ee/utils/exec"
 	"github.com/urfave/cli/v2"
@@ -61,8 +61,8 @@ func buildExecutor(dryRunFlag *DryRunFlag) (ret exec.Executor) {
 	return
 }
 
-func buildArtifactoryManager(server *ServerFlagLabels, executor exec.Executor) *core.ArtifactoryManager {
-	return &core.ArtifactoryManager{
+func buildArtifactoryManager(server *ServerFlagLabels, executor exec.Executor) *syncer.ArtifactoryManager {
+	return &syncer.ArtifactoryManager{
 		Label:    server.BuildLabel(),
 		Url:      server.Url.CurrentValue,
 		User:     server.User.CurrentValue,
