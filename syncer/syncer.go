@@ -345,7 +345,7 @@ func NewRepositoryCloner(repoType RepoType, packageType PackageType,
 }
 
 func prepareRepositoryBaseParams(params *services.RepositoryBaseParams) {
-	//workaround: repos assigned to projects without project prefix does not allow create repo.
+	//workaround: repos assigned to project without project prefix does not allow to create repo.
 	if params.Key != "" && !strings.HasPrefix(params.Key, params.ProjectKey) {
 		params.ProjectKey = ""
 	}
