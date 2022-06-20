@@ -77,6 +77,7 @@ func (o *BowerLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.BowerLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Bower(sourceRepoDetails)
 		})
 	}
@@ -97,6 +98,7 @@ func (o *ChefLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ChefLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Chef(sourceRepoDetails)
 		})
 	}
@@ -117,6 +119,7 @@ func (o *CocoaPodsLocalPodsRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.CocoapodsLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Cocoapods(sourceRepoDetails)
 		})
 	}
@@ -137,6 +140,7 @@ func (o *ConanLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ConanLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Conan(sourceRepoDetails)
 		})
 	}
@@ -157,6 +161,7 @@ func (o *DockerLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.DockerLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Docker(sourceRepoDetails)
 		})
 	}
@@ -177,6 +182,7 @@ func (o *GoLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GoLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Go(sourceRepoDetails)
 		})
 	}
@@ -197,6 +203,7 @@ func (o *NuGetLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.NugetLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Nuget(sourceRepoDetails)
 		})
 	}
@@ -217,6 +224,7 @@ func (o *NpmLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.NpmLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Npm(sourceRepoDetails)
 		})
 	}
@@ -237,6 +245,7 @@ func (o *PhpComposerLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ComposerLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Composer(sourceRepoDetails)
 		})
 	}
@@ -257,6 +266,7 @@ func (o *PuppetLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.PuppetLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Puppet(sourceRepoDetails)
 		})
 	}
@@ -277,6 +287,7 @@ func (o *PypiLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.PypiLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Pypi(sourceRepoDetails)
 		})
 	}
@@ -297,6 +308,7 @@ func (o *RubyLocalGemsRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GemsLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Gems(sourceRepoDetails)
 		})
 	}
@@ -317,6 +329,7 @@ func (o *GenericLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GenericLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Generic(sourceRepoDetails)
 		})
 	}
@@ -337,6 +350,7 @@ func (o *MavenLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.MavenLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Maven(sourceRepoDetails)
 		})
 	}
@@ -357,6 +371,7 @@ func (o *HelmLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.HelmLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Helm(sourceRepoDetails)
 		})
 	}
@@ -377,6 +392,7 @@ func (o *GitLfsLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GitlfsLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Gitlfs(sourceRepoDetails)
 		})
 	}
@@ -397,6 +413,7 @@ func (o *DebianLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.DebianLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Debian(sourceRepoDetails)
 		})
 	}
@@ -417,6 +434,7 @@ func (o *YumLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.YumLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Yum(sourceRepoDetails)
 		})
 	}
@@ -437,6 +455,7 @@ func (o *VagrantLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.VagrantLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Vagrant(sourceRepoDetails)
 		})
 	}
@@ -457,6 +476,7 @@ func (o *CargoLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.CargoLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Cargo(sourceRepoDetails)
 		})
 	}
@@ -477,6 +497,7 @@ func (o *GradleLocalRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GradleLocalRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateLocalRepository().Gradle(sourceRepoDetails)
 		})
 	}

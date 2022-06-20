@@ -77,6 +77,7 @@ func (o *BowerFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.BowerFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Bower(sourceRepoDetails)
 		})
 	}
@@ -97,6 +98,7 @@ func (o *ChefFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ChefFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Chef(sourceRepoDetails)
 		})
 	}
@@ -117,6 +119,7 @@ func (o *CocoaPodsFederatedPodsRepositoryCloner) Clone(repoKey string) (err erro
 	sourceRepoDetails := services.CocoapodsFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Cocoapods(sourceRepoDetails)
 		})
 	}
@@ -137,6 +140,7 @@ func (o *ConanFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ConanFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Conan(sourceRepoDetails)
 		})
 	}
@@ -157,6 +161,7 @@ func (o *DockerFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.DockerFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Docker(sourceRepoDetails)
 		})
 	}
@@ -177,6 +182,7 @@ func (o *GoFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GoFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Go(sourceRepoDetails)
 		})
 	}
@@ -197,6 +203,7 @@ func (o *NuGetFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.NugetFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Nuget(sourceRepoDetails)
 		})
 	}
@@ -217,6 +224,7 @@ func (o *NpmFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.NpmFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Npm(sourceRepoDetails)
 		})
 	}
@@ -237,6 +245,7 @@ func (o *PhpComposerFederatedRepositoryCloner) Clone(repoKey string) (err error)
 	sourceRepoDetails := services.ComposerFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Composer(sourceRepoDetails)
 		})
 	}
@@ -257,6 +266,7 @@ func (o *PuppetFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.PuppetFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Puppet(sourceRepoDetails)
 		})
 	}
@@ -277,6 +287,7 @@ func (o *PyPiFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.PuppetFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Puppet(sourceRepoDetails)
 		})
 	}
@@ -297,6 +308,7 @@ func (o *RubyFederatedGemsRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GemsFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Gems(sourceRepoDetails)
 		})
 	}
@@ -317,6 +329,7 @@ func (o *GenericFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GenericFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Generic(sourceRepoDetails)
 		})
 	}
@@ -337,6 +350,7 @@ func (o *MavenFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.MavenFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Maven(sourceRepoDetails)
 		})
 	}
@@ -357,6 +371,7 @@ func (o *HelmFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.HelmFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Helm(sourceRepoDetails)
 		})
 	}
@@ -377,6 +392,7 @@ func (o *GitLfsFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GitlfsFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Gitlfs(sourceRepoDetails)
 		})
 	}
@@ -397,6 +413,7 @@ func (o *DebianFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.DebianFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Debian(sourceRepoDetails)
 		})
 	}
@@ -417,6 +434,7 @@ func (o *YumFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.YumFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Yum(sourceRepoDetails)
 		})
 	}
@@ -437,6 +455,7 @@ func (o *VagrantFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.VagrantFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Vagrant(sourceRepoDetails)
 		})
 	}
@@ -457,6 +476,7 @@ func (o *CargoFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.CargoFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Cargo(sourceRepoDetails)
 		})
 	}
@@ -477,6 +497,7 @@ func (o *GradleFederatedRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GradleFederatedRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateFederatedRepository().Gradle(sourceRepoDetails)
 		})
 	}

@@ -69,6 +69,7 @@ func (o *BowerVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.BowerVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Bower(sourceRepoDetails)
 		})
 	}
@@ -89,6 +90,7 @@ func (o *ChefVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ChefVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Chef(sourceRepoDetails)
 		})
 	}
@@ -109,6 +111,7 @@ func (o *ConanVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.ConanVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Conan(sourceRepoDetails)
 		})
 	}
@@ -129,6 +132,7 @@ func (o *DockerVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.DockerVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Docker(sourceRepoDetails)
 		})
 	}
@@ -149,6 +153,7 @@ func (o *GoVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GoVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Go(sourceRepoDetails)
 		})
 	}
@@ -169,6 +174,7 @@ func (o *NuGetVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.NugetVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Nuget(sourceRepoDetails)
 		})
 	}
@@ -189,6 +195,7 @@ func (o *NpmVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.NpmVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Npm(sourceRepoDetails)
 		})
 	}
@@ -209,6 +216,7 @@ func (o *PuppetVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.PuppetVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Puppet(sourceRepoDetails)
 		})
 	}
@@ -229,6 +237,7 @@ func (o *PyPiVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.PypiVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Pypi(sourceRepoDetails)
 		})
 	}
@@ -249,6 +258,7 @@ func (o *RubyVirtualGemsRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GemsVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Gems(sourceRepoDetails)
 		})
 	}
@@ -269,6 +279,7 @@ func (o *GenericVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GenericVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Generic(sourceRepoDetails)
 		})
 	}
@@ -289,6 +300,7 @@ func (o *MavenVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.MavenVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Maven(sourceRepoDetails)
 		})
 	}
@@ -309,6 +321,7 @@ func (o *HelmVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.HelmVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Helm(sourceRepoDetails)
 		})
 	}
@@ -329,6 +342,7 @@ func (o *GitLfsVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GitlfsVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Gitlfs(sourceRepoDetails)
 		})
 	}
@@ -349,6 +363,7 @@ func (o *DebianVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.DebianVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Debian(sourceRepoDetails)
 		})
 	}
@@ -369,6 +384,7 @@ func (o *YumVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.YumVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Yum(sourceRepoDetails)
 		})
 	}
@@ -389,6 +405,7 @@ func (o *GradleVirtualRepositoryCloner) Clone(repoKey string) (err error) {
 	sourceRepoDetails := services.GradleVirtualRepositoryParams{}
 	if err = o.Source.GetRepository(repoKey, &sourceRepoDetails); err == nil {
 		err = o.Target.Execute(o.buildLabelCreateRepository(repoKey), func() error {
+			prepareRepositoryBaseParams(&sourceRepoDetails.RepositoryBaseParams)
 			return o.Target.CreateVirtualRepository().Gradle(sourceRepoDetails)
 		})
 	}
