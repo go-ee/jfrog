@@ -33,6 +33,7 @@ func NewCli(common *cliu.CommonFlags, appName string, usage string) (ret *Cli) {
 		NewCloneReposCmd().Command,
 		NewMigrateRepoCmd().Command,
 		NewMigrateReposCmd().Command,
+		NewEnableReplicationsCmd().Command,
 		NewDisableReplicationsCmd().Command,
 		cliu.NewMarkdownCmd(ret.App).Command,
 	}

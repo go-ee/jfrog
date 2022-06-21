@@ -181,6 +181,7 @@ func (o *Syncer) getRepoCloner(repoTypo RepoType, packageType PackageType) (ret 
 
 type ArtifactoryManager struct {
 	artifactory.ArtifactoryServicesManager
+	//*access.AccessServicesManager
 	Label    string
 	Url      string
 	User     string
@@ -208,28 +209,56 @@ func (o *ArtifactoryManager) Connect() (err error) {
 	if servicesManager, err = artifactory.New(serviceConfig); err == nil {
 		o.ArtifactoryServicesManager = servicesManager
 	}
+
+	/*
+		var accessManager *access.AccessServicesManager
+		if accessManager, err = access.New(serviceConfig); err == nil {
+			o.AccessServicesManager = accessManager
+		}
+	*/
+
+	return
+}
+
+func (o *ArtifactoryManager) EnableReplications() (err error) {
+	err = o.ChangeReplicationsStatus(true)
 	return
 }
 
 func (o *ArtifactoryManager) DisableReplications() (err error) {
+	err = o.ChangeReplicationsStatus(false)
+	return
+}
+
+func (o *ArtifactoryManager) DisableReplication(repo services.RepositoryDetails) (err error) {
+	err = o.ChangeReplicationStatus(repo, false)
+	return
+}
+
+func (o *ArtifactoryManager) EnableReplication(repo services.RepositoryDetails) (err error) {
+	err = o.ChangeReplicationStatus(repo, true)
+	return
+}
+
+func (o *ArtifactoryManager) ChangeReplicationsStatus(enable bool) (err error) {
 	var repos *[]services.RepositoryDetails
 	repos, err = o.GetAllRepositories()
 	for _, repo := range *repos {
-		if err = o.DisableReplication(repo); err != nil {
-			logrus.Warnf("disable replication error, %v, %v", repo.Key, err)
+		if err = o.ChangeReplicationStatus(repo, enable); err != nil {
+			logrus.Warnf("change replication error, %v, %v", repo.Key, err)
 		}
 	}
 	return
 }
 
-func (o *ArtifactoryManager) DisableReplication(repo services.RepositoryDetails) (err error) {
+func (o *ArtifactoryManager) ChangeReplicationStatus(repo services.RepositoryDetails, enable bool) (err error) {
 	if replications, findErr := o.GetReplication(repo.Key); findErr == nil {
 
 		logrus.Debugf(o.buildLog(fmt.Sprintf("disable replication '%v'", repo.Key)))
 		for _, replication := range replications {
 
-			if replication.Enabled {
-				replication.Enabled = false
+			if replication.Enabled != enable {
+				replication.Enabled = enable
 				updateReplicationParams := services.NewUpdateReplicationParams()
 				updateReplicationParams.ReplicationParams = replication
 
