@@ -211,6 +211,41 @@ func (o *ArtifactoryManager) Connect() (err error) {
 	return
 }
 
+func (o *ArtifactoryManager) DisableReplications() (err error) {
+	var repos *[]services.RepositoryDetails
+	repos, err = o.GetAllRepositories()
+	for _, repo := range *repos {
+		if err = o.DisableReplication(repo); err != nil {
+			logrus.Warnf("disable replication error, %v, %v", repo.Key, err)
+		}
+	}
+	return
+}
+
+func (o *ArtifactoryManager) DisableReplication(repo services.RepositoryDetails) (err error) {
+	if replications, findErr := o.GetReplication(repo.Key); findErr == nil {
+
+		logrus.Debugf(o.buildLog(fmt.Sprintf("disable replication '%v'", repo.Key)))
+		for _, replication := range replications {
+
+			if replication.Enabled {
+				replication.Enabled = false
+				updateReplicationParams := services.NewUpdateReplicationParams()
+				updateReplicationParams.ReplicationParams = replication
+
+				err = o.Execute(fmt.Sprintf("disable replication '%v'", replication.Url),
+					func() error {
+						return o.UpdateReplication(updateReplicationParams)
+					})
+			}
+		}
+	} else {
+		logrus.Debugf(o.buildLog(fmt.Sprintf("no replication configured '%v'", repo.Key)))
+	}
+
+	return
+}
+
 func (o *ArtifactoryManager) buildCreateReplicationParams(
 	repo services.RepositoryDetails) (ret *services.CreateReplicationParams) {
 

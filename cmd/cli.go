@@ -28,10 +28,12 @@ func NewCli(common *cliu.CommonFlags, appName string, usage string) (ret *Cli) {
 	}
 
 	app.Commands = []*cli.Command{
+		NewMigrateRepoCmd().Command,
 		NewCloneRepoCmd().Command,
 		NewCloneReposCmd().Command,
 		NewMigrateRepoCmd().Command,
 		NewMigrateReposCmd().Command,
+		NewDisableReplicationsCmd().Command,
 		cliu.NewMarkdownCmd(ret.App).Command,
 	}
 	return
