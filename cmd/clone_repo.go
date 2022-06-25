@@ -27,13 +27,8 @@ func NewCloneRepoCmd() (ret *CloneRepoCmd) {
 	}
 
 	ret.Command.Action = func(context *cli.Context) (err error) {
-		executor := buildExecutor(ret.DryRunFlag)
-
-		syncer, err := jf.NewSyncerAndConnect(
-			buildArtifactoryManager(ret.Source, executor),
-			buildArtifactoryManager(ret.Target, executor))
-
-		if err == nil {
+		var syncer *jf.Syncer
+		if syncer, err = ret.buildSyncerAndConnect(); err == nil {
 			err = syncer.CloneRepo(ret.RepoKeyFlag.CurrentValue)
 		}
 		return

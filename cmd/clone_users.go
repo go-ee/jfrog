@@ -5,18 +5,18 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type MigrateReposCmd struct {
+type CloneUsersCmd struct {
 	*BaseCmd
 }
 
-func NewMigrateReposCmd() (ret *MigrateReposCmd) {
-	ret = &MigrateReposCmd{
+func NewCloneUsersCmd() (ret *CloneUsersCmd) {
+	ret = &CloneUsersCmd{
 		BaseCmd: NewBaseCmd(),
 	}
 
 	ret.Command = &cli.Command{
-		Name:  "migrate-repos",
-		Usage: "Create repositories of source Artifactory server in target server and create replications",
+		Name:  "clone-users",
+		Usage: "Create users of source Artifactory server in target server",
 		Flags: []cli.Flag{
 			ret.Source.Url, ret.Source.User, ret.Source.Password,
 			ret.Target.Url, ret.Target.User, ret.Target.Password,
@@ -27,9 +27,9 @@ func NewMigrateReposCmd() (ret *MigrateReposCmd) {
 	ret.Command.Action = func(context *cli.Context) (err error) {
 		var syncer *jf.Syncer
 		if syncer, err = ret.buildSyncerAndConnect(); err == nil {
-			err = syncer.CloneReposAndCreateReplications()
+			err = syncer.CloneUsers()
 		}
-		return err
+		return
 	}
 	return
 }

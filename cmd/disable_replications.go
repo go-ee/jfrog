@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/go-ee/jfrog/jf"
 	"github.com/urfave/cli/v2"
 )
 
@@ -23,15 +24,11 @@ func NewDisableReplicationsCmd() (ret *DisableReplicationsCmd) {
 	}
 
 	ret.Command.Action = func(context *cli.Context) (err error) {
-		executor := buildExecutor(ret.DryRunFlag)
-
-		artifactoryManager := buildArtifactoryManager(ret.Source, executor)
-		err = artifactoryManager.Connect()
-
-		if err == nil {
+		var artifactoryManager *jf.ArtifactoryManager
+		if artifactoryManager, err = ret.buildArtifactoryManagerAndConnect(); err == nil {
 			err = artifactoryManager.DisableReplications()
 		}
-		return err
+		return
 	}
 	return
 }

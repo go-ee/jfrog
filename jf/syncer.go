@@ -186,7 +186,6 @@ func (o *Syncer) CloneUsers() (err error) {
 }
 
 func (o *Syncer) cloneUser(user *services.User) (err error) {
-
 	var userExists bool
 	if userExists, err = o.Target.IsUserExists(user.Name); err != nil {
 		return

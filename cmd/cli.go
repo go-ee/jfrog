@@ -35,6 +35,7 @@ func NewCli(common *cliu.CommonFlags, appName string, usage string) (ret *Cli) {
 		NewMigrateReposCmd().Command,
 		NewEnableReplicationsCmd().Command,
 		NewDisableReplicationsCmd().Command,
+		NewCloneUsersCmd().Command,
 		NewCipherCmd().Command,
 		cliu.NewMarkdownCmd(ret.App).Command,
 	}
@@ -56,12 +57,29 @@ func NewBaseCmd() *BaseCmd {
 		DryRunFlag:  NewDryRunFlag()}
 }
 
+func (o *BaseCmd) buildSyncerAndConnect() (ret *jf.Syncer, err error) {
+	executor := buildExecutor(o.DryRunFlag)
+
+	ret, err = jf.NewSyncerAndConnect(
+		buildArtifactoryManager(o.Source, executor),
+		buildArtifactoryManager(o.Target, executor))
+	return
+}
+
 func buildExecutor(dryRunFlag *DryRunFlag) (ret exec.Executor) {
 	if dryRunFlag.CurrentValue {
 		ret = &exec.SkipExecutor{}
 	} else {
 		ret = &exec.LogExecutor{}
 	}
+	return
+}
+
+func (o *BaseCmd) buildArtifactoryManagerAndConnect() (ret *jf.ArtifactoryManager, err error) {
+	executor := buildExecutor(o.DryRunFlag)
+
+	ret = buildArtifactoryManager(o.Source, executor)
+	err = ret.Connect()
 	return
 }
 
@@ -74,4 +92,11 @@ func buildArtifactoryManager(server *ServerFlagLabels, executor exec.Executor) *
 
 		Executor: executor,
 	}
+}
+
+func buildArtifactoryManagerAndConnect(
+	server *ServerFlagLabels, executor exec.Executor) (ret *jf.ArtifactoryManager, err error) {
+	ret = buildArtifactoryManager(server, executor)
+	err = ret.Connect()
+	return
 }
