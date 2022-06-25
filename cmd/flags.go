@@ -85,3 +85,25 @@ func NewRepoKeyFlag() *RepoKeyFlag {
 		Usage: fmt.Sprintf("Repository key"),
 	})}
 }
+
+type MasterKeyFlag struct {
+	*cliu.StringFlag
+}
+
+func NewMasterKeyFlag() *MasterKeyFlag {
+	return &MasterKeyFlag{cliu.NewStringFlag(&cli.StringFlag{
+		Name:  fmt.Sprintf("masterKey"),
+		Usage: fmt.Sprintf("Master key of JFrog Artifactory"),
+	})}
+}
+
+type SecretFlag struct {
+	*cliu.StringFlag
+}
+
+func NewSecretFlag() *SecretFlag {
+	return &SecretFlag{cliu.NewStringFlag(&cli.StringFlag{
+		Name:  fmt.Sprintf("secret"),
+		Usage: fmt.Sprintf("Secret value"),
+	})}
+}

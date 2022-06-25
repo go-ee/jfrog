@@ -2,9 +2,10 @@ module github.com/go-ee/jfrog
 
 go 1.18
 
-replace github.com/go-ee/utils => "/home/z000ru5y/go/src/github.com/go-ee/utils"
+replace github.com/go-ee/utils => /home/z000ru5y/go/src/github.com/go-ee/utils
 
 require (
+	github.com/btcsuite/btcutil v1.0.2
 	github.com/go-ee/utils v0.0.0-20211007010138-46e0520f02ca
 	github.com/jfrog/jfrog-client-go v1.14.0
 	github.com/sirupsen/logrus v1.8.1

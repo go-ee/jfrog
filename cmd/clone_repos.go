@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/go-ee/jfrog/syncer"
+	"github.com/go-ee/jfrog/jf"
 	"github.com/go-ee/utils/cliu"
 	"github.com/urfave/cli/v2"
 )
@@ -34,7 +34,7 @@ func NewCloneReposCmd() (ret *CloneReposCmd) {
 	ret.Command.Action = func(context *cli.Context) (err error) {
 		executor := buildExecutor(ret.DryRunFlag)
 
-		syncer, err := syncer.NewSyncerAndConnect(
+		syncer, err := jf.NewSyncerAndConnect(
 			buildArtifactoryManager(ret.Source, executor),
 			buildArtifactoryManager(ret.Target, executor))
 

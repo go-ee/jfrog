@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/go-ee/jfrog/syncer"
+	"github.com/go-ee/jfrog/jf"
 	"github.com/go-ee/utils/cliu"
 	"github.com/go-ee/utils/exec"
 	"github.com/urfave/cli/v2"
@@ -35,6 +35,7 @@ func NewCli(common *cliu.CommonFlags, appName string, usage string) (ret *Cli) {
 		NewMigrateReposCmd().Command,
 		NewEnableReplicationsCmd().Command,
 		NewDisableReplicationsCmd().Command,
+		NewCipherCmd().Command,
 		cliu.NewMarkdownCmd(ret.App).Command,
 	}
 	return
@@ -64,8 +65,8 @@ func buildExecutor(dryRunFlag *DryRunFlag) (ret exec.Executor) {
 	return
 }
 
-func buildArtifactoryManager(server *ServerFlagLabels, executor exec.Executor) *syncer.ArtifactoryManager {
-	return &syncer.ArtifactoryManager{
+func buildArtifactoryManager(server *ServerFlagLabels, executor exec.Executor) *jf.ArtifactoryManager {
+	return &jf.ArtifactoryManager{
 		Label:    server.BuildLabel(),
 		Url:      server.Url.CurrentValue,
 		User:     server.User.CurrentValue,
