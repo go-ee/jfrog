@@ -172,14 +172,15 @@ func (o *Syncer) getRepoCloner(repoTypo RepoType, packageType PackageType) (ret 
 	}
 	return
 }
+
 func (o *Syncer) CloneUsers() (err error) {
 	logrus.Infof("create artifactory users from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
 	var users []*services.User
 	users, err = o.Source.GetAllUsers()
-	for _, user := range users {
-		if err = o.cloneUser(user); err != nil {
-			logrus.Warnf("clone error, %v, %v", user, err)
+	for _, item := range users {
+		if err = o.cloneUser(item); err != nil {
+			logrus.Warnf("clone error, %v, %v", item, err)
 		}
 	}
 	return
@@ -195,6 +196,37 @@ func (o *Syncer) cloneUser(user *services.User) (err error) {
 		err = o.Target.CreateUser(services.UserParams{UserDetails: *user})
 	} else {
 		logrus.Infof(o.Target.buildLog("user already exists: " + user.Name))
+	}
+	return
+}
+
+func (o *Syncer) ClonePermissions() (err error) {
+	logrus.Infof("create artifactory permissionTargetNames from '%v' to '%v'", o.Source.Url, o.Target.Url)
+
+	var permissionTargetNames []*services.PermissionTargetName
+	permissionTargetNames, err = o.Source.GetPermissionTargets()
+	for _, item := range permissionTargetNames {
+		if err = o.clonePermission(item); err != nil {
+			logrus.Warnf("clone error, %v, %v", item, err)
+		}
+	}
+	return
+}
+
+func (o *Syncer) clonePermission(permissionTargetName *services.PermissionTargetName) (err error) {
+	var permissionTargetParams *services.PermissionTargetParams
+	if permissionTargetParams, err = o.Target.GetPermissionTarget(permissionTargetName.Name); err != nil {
+		return
+	}
+
+	if permissionTargetParams == nil {
+		var sourcePermissionTargetParams *services.PermissionTargetParams
+		if sourcePermissionTargetParams, err = o.Source.GetPermissionTarget(permissionTargetName.Name); err != nil {
+			return
+		}
+		err = o.Target.CreatePermissionTarget(*sourcePermissionTargetParams)
+	} else {
+		logrus.Infof(o.Target.buildLog("permissionTargetName already exists: " + permissionTargetName.Name))
 	}
 	return
 }

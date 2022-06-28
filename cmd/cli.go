@@ -36,6 +36,7 @@ func NewCli(common *cliu.CommonFlags, appName string, usage string) (ret *Cli) {
 		NewEnableReplicationsCmd().Command,
 		NewDisableReplicationsCmd().Command,
 		NewCloneUsersCmd().Command,
+		NewClonePermissionsCmd().Command,
 		NewCipherCmd().Command,
 		cliu.NewMarkdownCmd(ret.App).Command,
 	}

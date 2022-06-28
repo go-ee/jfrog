@@ -92,8 +92,9 @@ type MasterKeyFlag struct {
 
 func NewMasterKeyFlag() *MasterKeyFlag {
 	return &MasterKeyFlag{cliu.NewStringFlag(&cli.StringFlag{
-		Name:  fmt.Sprintf("masterKey"),
-		Usage: fmt.Sprintf("Master key of JFrog Artifactory"),
+		Name:     fmt.Sprintf("masterKey"),
+		Usage:    fmt.Sprintf("Master key of JFrog Artifactory"),
+		Required: true,
 	})}
 }
 
@@ -103,7 +104,8 @@ type SecretFlag struct {
 
 func NewSecretFlag() *SecretFlag {
 	return &SecretFlag{cliu.NewStringFlag(&cli.StringFlag{
-		Name:  fmt.Sprintf("secret"),
-		Usage: fmt.Sprintf("Secret value"),
+		Name:     fmt.Sprintf("secret"),
+		Usage:    fmt.Sprintf("Secret value"),
+		Required: true,
 	})}
 }

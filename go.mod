@@ -3,6 +3,7 @@ module github.com/go-ee/jfrog
 go 1.18
 
 replace github.com/go-ee/utils => /home/z000ru5y/go/src/github.com/go-ee/utils
+replace github.com/jfrog/jfrog-client-go => /home/z000ru5y/go/src/github.com/go-ee/jfrog-client-go
 
 require (
 	github.com/btcsuite/btcutil v1.0.2
