@@ -193,6 +193,9 @@ func (o *Syncer) cloneUser(user *services.User) (err error) {
 	}
 
 	if !userExists {
+		if user.Email == "" {
+			user.Email = user.Name
+		}
 		err = o.Target.CreateUser(services.UserParams{UserDetails: *user})
 	} else {
 		logrus.Infof(o.Target.buildLog("user already exists: " + user.Name))
