@@ -143,9 +143,21 @@ func (o *ArtifactoryManager) Execute(info string, execute func() error) (err err
 
 func (o *ArtifactoryManager) IsUserExists(userName string) (ret bool, err error) {
 	var user *services.User
-	user, err = o.GetUser(services.UserParams{UserDetails: services.User{Name: userName}})
+	user, err = o.GetUser(*wrapNameToUserParams(userName))
 	ret = user != nil
 	return
+}
+
+func wrapNameToUserParams(userName string) *services.UserParams {
+	return &services.UserParams{UserDetails: services.User{Name: userName}}
+}
+
+func wrapNameToGroupParams(groupName string) *services.GroupParams {
+	return &services.GroupParams{GroupDetails: services.Group{Name: groupName}}
+}
+
+func wrapGroupToGroupParams(group *services.Group) *services.GroupParams {
+	return &services.GroupParams{GroupDetails: *group}
 }
 
 func buildRepoPackageTypeUrlPrefix(repo services.RepositoryDetails) (ret string) {
@@ -253,4 +265,57 @@ func prepareRepositoryBaseParams(params *services.RepositoryBaseParams) {
 	if params.Key != "" && !strings.HasPrefix(params.Key, params.ProjectKey) {
 		params.ProjectKey = ""
 	}
+}
+
+func findNonExistentUsers(
+	sources []*services.User, targets []*services.User) (ret []*services.User) {
+
+	targetNames := map[string]*services.User{}
+	for _, target := range targets {
+		targetNames[target.Name] = target
+	}
+
+	for _, source := range sources {
+		found := targetNames[source.Name]
+		if found == nil {
+			ret = append(ret, source)
+		}
+	}
+	return
+}
+
+func findNonExistentPermissions(
+	sources []*services.PermissionTargetParams, targets []*services.PermissionTargetParams) (
+	ret []*services.PermissionTargetParams) {
+
+	targetNames := map[string]*services.PermissionTargetParams{}
+	for _, target := range targets {
+		targetNames[target.Name] = target
+	}
+
+	for _, source := range sources {
+		found := targetNames[source.Name]
+		if found == nil {
+			ret = append(ret, source)
+		}
+	}
+	return
+}
+
+func findNonExistentGroups(
+	sources []*services.Group, targets []*services.Group) (
+	ret []*services.Group) {
+
+	targetNames := map[string]*services.Group{}
+	for _, target := range targets {
+		targetNames[target.Name] = target
+	}
+
+	for _, source := range sources {
+		found := targetNames[source.Name]
+		if found == nil {
+			ret = append(ret, source)
+		}
+	}
+	return
 }

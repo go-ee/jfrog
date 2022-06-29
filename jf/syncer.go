@@ -2,6 +2,7 @@ package jf
 
 import (
 	"fmt"
+	"github.com/go-ee/utils/stringu"
 	"github.com/jfrog/jfrog-client-go/artifactory/services"
 	"github.com/sirupsen/logrus"
 )
@@ -174,62 +175,103 @@ func (o *Syncer) getRepoCloner(repoTypo RepoType, packageType PackageType) (ret 
 }
 
 func (o *Syncer) CloneUsers() (err error) {
-	logrus.Infof("create artifactory users from '%v' to '%v'", o.Source.Url, o.Target.Url)
+	logrus.Infof("create artifactory sourceItems from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
-	var users []*services.User
-	users, err = o.Source.GetAllUsers()
-	for _, item := range users {
-		if err = o.cloneUser(item); err != nil {
+	var sourceItems []*services.User
+	if sourceItems, err = o.Source.GetAllUsers(); err != nil {
+		return
+	}
+	var targetItems []*services.User
+	if targetItems, err = o.Target.GetAllUsers(); err != nil {
+		return
+	}
+
+	notExistentItems := findNonExistentUsers(sourceItems, targetItems)
+	for _, item := range notExistentItems {
+		if err = o.cloneUser(item.Name); err != nil {
 			logrus.Warnf("clone error, %v, %v", item, err)
 		}
 	}
 	return
 }
 
-func (o *Syncer) cloneUser(user *services.User) (err error) {
-	var userExists bool
-	if userExists, err = o.Target.IsUserExists(user.Name); err != nil {
+func (o *Syncer) cloneUser(userName string) (err error) {
+
+	var user *services.User
+	if user, err = o.Source.GetUser(*wrapNameToUserParams(userName)); err != nil {
 		return
 	}
-
-	if !userExists {
-		if user.Email == "" {
-			user.Email = user.Name
-		}
-		err = o.Target.CreateUser(services.UserParams{UserDetails: *user})
-	} else {
-		logrus.Infof(o.Target.buildLog("user already exists: " + user.Name))
+	if user.Email == "" {
+		user.Email = user.Name
 	}
+	if user.Password == "" {
+		user.Password = stringu.GeneratePassword()
+	}
+	logrus.Infof("create user %v", user.Name)
+	err = o.Target.CreateUser(services.UserParams{UserDetails: *user})
 	return
 }
 
 func (o *Syncer) ClonePermissions() (err error) {
-	logrus.Infof("create artifactory permissionTargetNames from '%v' to '%v'", o.Source.Url, o.Target.Url)
+	logrus.Infof("create artifactory permissions from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
-	var permissionTargetNames []*services.PermissionTargetName
-	permissionTargetNames, err = o.Source.GetPermissionTargets()
-	for _, item := range permissionTargetNames {
-		if err = o.clonePermission(item); err != nil {
+	var sourceItems []*services.PermissionTargetParams
+	if sourceItems, err = o.Source.GetPermissionTargets(); err != nil {
+		return
+	}
+	var targetItems []*services.PermissionTargetParams
+	if targetItems, err = o.Target.GetPermissionTargets(); err != nil {
+		return
+	}
+
+	notExistentItems := findNonExistentPermissions(sourceItems, targetItems)
+	for _, item := range notExistentItems {
+		if err = o.clonePermission(item.Name); err != nil {
 			logrus.Warnf("clone error, %v, %v", item, err)
 		}
 	}
 	return
 }
 
-func (o *Syncer) clonePermission(permissionTargetName *services.PermissionTargetName) (err error) {
-	var permissionTargetParams *services.PermissionTargetParams
-	if permissionTargetParams, err = o.Target.GetPermissionTarget(permissionTargetName.Name); err != nil {
+func (o *Syncer) clonePermission(permissionTargetName string) (err error) {
+	var sourcePermissionTargetParams *services.PermissionTargetParams
+	if sourcePermissionTargetParams, err = o.Source.GetPermissionTarget(permissionTargetName); err != nil {
 		return
 	}
 
-	if permissionTargetParams == nil {
-		var sourcePermissionTargetParams *services.PermissionTargetParams
-		if sourcePermissionTargetParams, err = o.Source.GetPermissionTarget(permissionTargetName.Name); err != nil {
-			return
-		}
-		err = o.Target.CreatePermissionTarget(*sourcePermissionTargetParams)
-	} else {
-		logrus.Infof(o.Target.buildLog("permissionTargetName already exists: " + permissionTargetName.Name))
+	logrus.Infof("create permission target %v", sourcePermissionTargetParams.Name)
+	err = o.Target.CreatePermissionTarget(*sourcePermissionTargetParams)
+	return
+}
+
+func (o *Syncer) CloneGroups() (err error) {
+	logrus.Infof("create artifactory groups from '%v' to '%v'", o.Source.Url, o.Target.Url)
+
+	var sourceItems []*services.Group
+	if sourceItems, err = o.Source.GetGroups(); err != nil {
+		return
 	}
+	var targetItems []*services.Group
+	if targetItems, err = o.Target.GetGroups(); err != nil {
+		return
+	}
+
+	notExistentItems := findNonExistentGroups(sourceItems, targetItems)
+	for _, item := range notExistentItems {
+		if err = o.cloneGroup(item.Name); err != nil {
+			logrus.Warnf("clone error, %v, %v", item, err)
+		}
+	}
+	return
+}
+
+func (o *Syncer) cloneGroup(groupName string) (err error) {
+	var group *services.Group
+	if group, err = o.Source.GetGroup(*wrapNameToGroupParams(groupName)); err != nil {
+		return
+	}
+
+	logrus.Infof("create group %v", group.Name)
+	err = o.Target.CreateGroup(*wrapGroupToGroupParams(group))
 	return
 }
