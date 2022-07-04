@@ -18,7 +18,7 @@ func NewDisableReplicationsCmd() (ret *DisableReplicationsCmd) {
 		Name:  "disable-replications",
 		Usage: "Disable replications in Artifactory",
 		Flags: []cli.Flag{
-			ret.Source.Url, ret.Source.User, ret.Source.Password,
+			ret.Source.Url, ret.Source.User, ret.Source.Password, ret.Source.Token,
 			ret.DryRunFlag,
 		},
 	}

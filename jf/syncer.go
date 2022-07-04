@@ -277,33 +277,34 @@ func (o *Syncer) cloneGroup(groupName string) (err error) {
 	return
 }
 
-func (o *Syncer) CloneProjects(projectKeys []string) (err error) {
+func (o *Syncer) CloneProjects() (err error) {
 	logrus.Infof("create artifactory projects from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
-	for _, projectKey := range projectKeys {
-		if err = o.cloneProject(projectKey); err != nil {
-			logrus.Warnf("clone error, %v, %v", projectKey, err)
+	var sourceItems []*accessServices.Project
+	if sourceItems, err = o.Source.ProjectService.GetAllProjects(); err != nil {
+		return
+	}
+	var targetItems []*accessServices.Project
+	if targetItems, err = o.Target.ProjectService.GetAllProjects(); err != nil {
+		return
+	}
+
+	notExistentItems := findNonExistentProjects(sourceItems, targetItems)
+	for _, item := range notExistentItems {
+		if err = o.cloneProject(item.ProjectKey); err != nil {
+			logrus.Warnf("clone error, %v, %v", item, err)
 		}
 	}
 	return
 }
 
 func (o *Syncer) cloneProject(projectKey string) (err error) {
-	var projectExists bool
-	if projectExists, err = o.Target.IsProjectExists(projectKey); !projectExists {
-		logrus.Infof("test %v", projectExists)
-	}
-
 	var project *accessServices.Project
 	if project, err = o.Source.ProjectService.Get(projectKey); err != nil {
 		return
 	}
 
-	if project == nil {
-		logrus.Infof("project does not exists %v", projectKey)
-		return
-	}
-
+	var projectExists bool
 	if projectExists, err = o.Target.IsProjectExists(projectKey); !projectExists {
 		logrus.Infof("create project %v", project.ProjectKey)
 		err = o.Target.ProjectService.Create(*wrapProjectToProjectParams(project))

@@ -18,7 +18,7 @@ func NewEnableReplicationsCmd() (ret *EnableReplicationsCmd) {
 		Name:  "enable-replications",
 		Usage: "Enable replications in Artifactory",
 		Flags: []cli.Flag{
-			ret.Source.Url, ret.Source.User, ret.Source.Password,
+			ret.Source.Url, ret.Source.User, ret.Source.Password, ret.Source.Token,
 			ret.DryRunFlag,
 		},
 	}

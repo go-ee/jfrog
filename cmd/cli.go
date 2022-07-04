@@ -92,6 +92,7 @@ func buildArtifactoryManager(server *ServerFlagLabels, executor exec.Executor) *
 		Url:      server.Url.CurrentValue,
 		User:     server.User.CurrentValue,
 		Password: server.Password.CurrentValue,
+		Token:    server.Token.CurrentValue,
 
 		Executor: executor,
 	}

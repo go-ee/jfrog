@@ -22,6 +22,7 @@ type ArtifactoryManager struct {
 	Url            string
 	User           string
 	Password       string
+	Token          string
 
 	Executor exec.Executor
 }
@@ -37,8 +38,13 @@ func (o *ArtifactoryManager) Connect() (err error) {
 		o.ArtifactoryServicesManager = servicesManager
 	}
 
+	var accessToken string
+	if accessToken, err = o.getOrCreateAccessToken(); err != nil {
+		return
+	}
+
 	var accessServiceConfig config.Config
-	if accessServiceConfig, err = o.buildAccessConfig(); err != nil {
+	if accessServiceConfig, err = o.buildAccessConfig(accessToken); err != nil {
 		return
 	}
 
@@ -52,19 +58,44 @@ func (o *ArtifactoryManager) Connect() (err error) {
 	return
 }
 
+func (o *ArtifactoryManager) getOrCreateAccessToken() (ret string, err error) {
+	if o.Token != "" {
+		ret = o.Token
+		return
+	}
+
+	var tokens []string
+	if tokens, err = o.GetUserTokens(o.User); err != nil {
+		return
+	}
+
+	if len(tokens) > 0 {
+		ret = tokens[0]
+	} else {
+		err = fmt.Errorf("create access token, not implemented yet")
+	}
+	return
+}
+
 func (o *ArtifactoryManager) buildArtifactoryConfig() (ret config.Config, err error) {
-	return o.buildConfig(fmt.Sprintf("%vartifactory/", o.Url))
+	return o.buildConfig(fmt.Sprintf("%vartifactory/", o.Url), "")
 }
 
-func (o *ArtifactoryManager) buildAccessConfig() (ret config.Config, err error) {
-	return o.buildConfig(fmt.Sprintf("%vaccess/", o.Url))
+func (o *ArtifactoryManager) buildAccessConfig(accessToken string) (ret config.Config, err error) {
+	return o.buildConfig(fmt.Sprintf("%vaccess/", o.Url), accessToken)
 }
 
-func (o *ArtifactoryManager) buildConfig(url string) (ret config.Config, err error) {
+func (o *ArtifactoryManager) buildConfig(url string, accessToken string) (ret config.Config, err error) {
 	details := auth.NewArtifactoryDetails()
 	details.SetUrl(url)
-	details.SetUser(o.User)
-	details.SetPassword(o.Password)
+
+	if accessToken != "" {
+		//encodedAccessToken := base64.StdEncoding.EncodeToString([]byte(accessToken))
+		details.SetAccessToken(accessToken)
+	} else {
+		details.SetUser(o.User)
+		details.SetPassword(o.Password)
+	}
 
 	ret, err = config.NewConfigBuilder().
 		SetServiceDetails(details).
@@ -345,6 +376,24 @@ func findNonExistentGroups(
 
 	for _, source := range sources {
 		found := targetNames[source.Name]
+		if found == nil {
+			ret = append(ret, source)
+		}
+	}
+	return
+}
+
+func findNonExistentProjects(
+	sources []*accessServices.Project, targets []*accessServices.Project) (
+	ret []*accessServices.Project) {
+
+	targetNames := map[string]*accessServices.Project{}
+	for _, target := range targets {
+		targetNames[target.ProjectKey] = target
+	}
+
+	for _, source := range sources {
+		found := targetNames[source.ProjectKey]
 		if found == nil {
 			ret = append(ret, source)
 		}

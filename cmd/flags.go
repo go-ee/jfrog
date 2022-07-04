@@ -11,6 +11,7 @@ type ServerFlagLabels struct {
 	Url      *UrlFlag
 	User     *UserFlag
 	Password *PasswordTag
+	Token    *TokenTag
 }
 
 func NewServerDef(label string) *ServerFlagLabels {
@@ -18,6 +19,7 @@ func NewServerDef(label string) *ServerFlagLabels {
 		Url:      NewUrlFlag(buildLabelCommandPrefix(label)),
 		User:     NewUserFlag(buildLabelCommandPrefix(label)),
 		Password: NewPasswordFlag(buildLabelCommandPrefix(label)),
+		Token:    NewTokenTag(buildLabelCommandPrefix(label)),
 	}
 }
 
@@ -60,7 +62,18 @@ type PasswordTag struct {
 func NewPasswordFlag(label string) *PasswordTag {
 	return &PasswordTag{cliu.NewStringFlag(&cli.StringFlag{
 		Name:  fmt.Sprintf("%vpassword", label),
-		Usage: fmt.Sprintf("The password of the artifactory %vserver.", label),
+		Usage: fmt.Sprintf("The password for the artifactory %vserver.", label),
+	})}
+}
+
+type TokenTag struct {
+	*cliu.StringFlag
+}
+
+func NewTokenTag(label string) *TokenTag {
+	return &TokenTag{cliu.NewStringFlag(&cli.StringFlag{
+		Name:  fmt.Sprintf("%vtoken", label),
+		Usage: fmt.Sprintf("The access token for the artifactory %vserver.", label),
 	})}
 }
 

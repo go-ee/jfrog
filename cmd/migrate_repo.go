@@ -20,8 +20,8 @@ func NewMigrateRepoCmd() (ret *MigrateRepoCmd) {
 		Name:  "migrate-repo",
 		Usage: "Create repository of source Artifactory server in target server, and create replication",
 		Flags: []cli.Flag{
-			ret.Source.Url, ret.Source.User, ret.Source.Password,
-			ret.Target.Url, ret.Target.User, ret.Target.Password,
+			ret.Source.Url, ret.Source.User, ret.Source.Password, ret.Source.Token,
+			ret.Target.Url, ret.Target.User, ret.Target.Password, ret.Target.Token,
 			ret.RepoKeyFlag, ret.DryRunFlag,
 		},
 	}
