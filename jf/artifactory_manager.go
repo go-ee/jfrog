@@ -27,32 +27,50 @@ type ArtifactoryManager struct {
 }
 
 func (o *ArtifactoryManager) Connect() (err error) {
-	details := auth.NewArtifactoryDetails()
-	details.SetUrl(o.Url)
-	details.SetUser(o.User)
-	details.SetPassword(o.Password)
-
-	var serviceConfig config.Config
-	if serviceConfig, err = config.NewConfigBuilder().
-		SetServiceDetails(details).
-		SetDryRun(false).
-		//SetHttpClient(myCustomClient).
-		Build(); err != nil {
+	var artifactoryServiceConfig config.Config
+	if artifactoryServiceConfig, err = o.buildArtifactoryConfig(); err != nil {
 		return
 	}
 
 	var servicesManager artifactory.ArtifactoryServicesManager
-	if servicesManager, err = artifactory.New(serviceConfig); err == nil {
+	if servicesManager, err = artifactory.New(artifactoryServiceConfig); err == nil {
 		o.ArtifactoryServicesManager = servicesManager
 	}
 
+	var accessServiceConfig config.Config
+	if accessServiceConfig, err = o.buildAccessConfig(); err != nil {
+		return
+	}
+
 	var accessManager *access.AccessServicesManager
-	if accessManager, err = access.New(serviceConfig); err == nil {
+	if accessManager, err = access.New(accessServiceConfig); err == nil {
 		o.AccessServicesManager = accessManager
 	}
 
 	o.ProjectService = accessServices.NewProjectService(accessManager.Client())
-	o.ProjectService.ServiceDetails = serviceConfig.GetServiceDetails()
+	o.ProjectService.ServiceDetails = accessServiceConfig.GetServiceDetails()
+	return
+}
+
+func (o *ArtifactoryManager) buildArtifactoryConfig() (ret config.Config, err error) {
+	return o.buildConfig(fmt.Sprintf("%vartifactory/", o.Url))
+}
+
+func (o *ArtifactoryManager) buildAccessConfig() (ret config.Config, err error) {
+	return o.buildConfig(fmt.Sprintf("%vaccess/", o.Url))
+}
+
+func (o *ArtifactoryManager) buildConfig(url string) (ret config.Config, err error) {
+	details := auth.NewArtifactoryDetails()
+	details.SetUrl(url)
+	details.SetUser(o.User)
+	details.SetPassword(o.Password)
+
+	ret, err = config.NewConfigBuilder().
+		SetServiceDetails(details).
+		SetDryRun(false).
+		//SetHttpClient(myCustomClient).
+		Build()
 	return
 }
 

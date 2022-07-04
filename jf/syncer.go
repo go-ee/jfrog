@@ -289,6 +289,11 @@ func (o *Syncer) CloneProjects(projectKeys []string) (err error) {
 }
 
 func (o *Syncer) cloneProject(projectKey string) (err error) {
+	var projectExists bool
+	if projectExists, err = o.Target.IsProjectExists(projectKey); !projectExists {
+		logrus.Infof("test %v", projectExists)
+	}
+
 	var project *accessServices.Project
 	if project, err = o.Source.ProjectService.Get(projectKey); err != nil {
 		return
@@ -299,7 +304,6 @@ func (o *Syncer) cloneProject(projectKey string) (err error) {
 		return
 	}
 
-	var projectExists bool
 	if projectExists, err = o.Target.IsProjectExists(projectKey); !projectExists {
 		logrus.Infof("create project %v", project.ProjectKey)
 		err = o.Target.ProjectService.Create(*wrapProjectToProjectParams(project))
