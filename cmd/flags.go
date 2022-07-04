@@ -109,3 +109,19 @@ func NewSecretFlag() *SecretFlag {
 		Required: true,
 	})}
 }
+
+type ProjectsFlag struct {
+	*cliu.StringFlag
+}
+
+func NewProjectsFlag() *ProjectsFlag {
+	return &ProjectsFlag{cliu.NewStringFlag(&cli.StringFlag{
+		Name:     fmt.Sprintf("projects"),
+		Usage:    fmt.Sprintf("Project keys, comma sepparated"),
+		Required: true,
+	})}
+}
+
+func (o *ProjectsFlag) ProjectKeys() []string {
+	return strings.Split(o.CurrentValue, ",")
+}

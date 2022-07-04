@@ -3,6 +3,8 @@ package jf
 import (
 	"fmt"
 	"github.com/go-ee/utils/exec"
+	"github.com/jfrog/jfrog-client-go/access"
+	accessServices "github.com/jfrog/jfrog-client-go/access/services"
 	"github.com/jfrog/jfrog-client-go/artifactory"
 	"github.com/jfrog/jfrog-client-go/artifactory/auth"
 	"github.com/jfrog/jfrog-client-go/artifactory/services"
@@ -14,11 +16,12 @@ import (
 
 type ArtifactoryManager struct {
 	artifactory.ArtifactoryServicesManager
-	//*access.AccessServicesManager
-	Label    string
-	Url      string
-	User     string
-	Password string
+	*access.AccessServicesManager
+	ProjectService *accessServices.ProjectService
+	Label          string
+	Url            string
+	User           string
+	Password       string
 
 	Executor exec.Executor
 }
@@ -43,13 +46,13 @@ func (o *ArtifactoryManager) Connect() (err error) {
 		o.ArtifactoryServicesManager = servicesManager
 	}
 
-	/*
-		var accessManager *access.AccessServicesManager
-		if accessManager, err = access.New(serviceConfig); err == nil {
-			o.AccessServicesManager = accessManager
-		}
-	*/
+	var accessManager *access.AccessServicesManager
+	if accessManager, err = access.New(serviceConfig); err == nil {
+		o.AccessServicesManager = accessManager
+	}
 
+	o.ProjectService = accessServices.NewProjectService(accessManager.Client())
+	o.ProjectService.ServiceDetails = serviceConfig.GetServiceDetails()
 	return
 }
 
@@ -148,6 +151,13 @@ func (o *ArtifactoryManager) IsUserExists(userName string) (ret bool, err error)
 	return
 }
 
+func (o *ArtifactoryManager) IsProjectExists(projectKey string) (ret bool, err error) {
+	var project *accessServices.Project
+	project, err = o.ProjectService.Get(projectKey)
+	ret = project != nil
+	return
+}
+
 func wrapNameToUserParams(userName string) *services.UserParams {
 	return &services.UserParams{UserDetails: services.User{Name: userName}}
 }
@@ -158,6 +168,10 @@ func wrapNameToGroupParams(groupName string) *services.GroupParams {
 
 func wrapGroupToGroupParams(group *services.Group) *services.GroupParams {
 	return &services.GroupParams{GroupDetails: *group}
+}
+
+func wrapProjectToProjectParams(project *accessServices.Project) *accessServices.ProjectParams {
+	return &accessServices.ProjectParams{ProjectDetails: *project}
 }
 
 func buildRepoPackageTypeUrlPrefix(repo services.RepositoryDetails) (ret string) {

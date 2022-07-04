@@ -3,6 +3,7 @@ package jf
 import (
 	"fmt"
 	"github.com/go-ee/utils/stringu"
+	accessServices "github.com/jfrog/jfrog-client-go/access/services"
 	"github.com/jfrog/jfrog-client-go/artifactory/services"
 	"github.com/sirupsen/logrus"
 )
@@ -273,5 +274,37 @@ func (o *Syncer) cloneGroup(groupName string) (err error) {
 
 	logrus.Infof("create group %v", group.Name)
 	err = o.Target.CreateGroup(*wrapGroupToGroupParams(group))
+	return
+}
+
+func (o *Syncer) CloneProjects(projectKeys []string) (err error) {
+	logrus.Infof("create artifactory projects from '%v' to '%v'", o.Source.Url, o.Target.Url)
+
+	for _, projectKey := range projectKeys {
+		if err = o.cloneProject(projectKey); err != nil {
+			logrus.Warnf("clone error, %v, %v", projectKey, err)
+		}
+	}
+	return
+}
+
+func (o *Syncer) cloneProject(projectKey string) (err error) {
+	var project *accessServices.Project
+	if project, err = o.Source.ProjectService.Get(projectKey); err != nil {
+		return
+	}
+
+	if project == nil {
+		logrus.Infof("project does not exists %v", projectKey)
+		return
+	}
+
+	var projectExists bool
+	if projectExists, err = o.Target.IsProjectExists(projectKey); !projectExists {
+		logrus.Infof("create project %v", project.ProjectKey)
+		err = o.Target.ProjectService.Create(*wrapProjectToProjectParams(project))
+	} else {
+		logrus.Infof("project already exists %v", projectKey)
+	}
 	return
 }

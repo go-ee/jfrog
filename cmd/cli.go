@@ -38,6 +38,7 @@ func NewCli(common *cliu.CommonFlags, appName string, usage string) (ret *Cli) {
 		NewCloneUsersCmd().Command,
 		NewClonePermissionsCmd().Command,
 		NewCloneGroupsCmd().Command,
+		NewCloneProjectsCmd().Command,
 		NewCipherCmd().Command,
 		cliu.NewMarkdownCmd(ret.App).Command,
 	}
