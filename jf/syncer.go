@@ -292,24 +292,86 @@ func (o *Syncer) CloneProjects() (err error) {
 	notExistentItems := findNonExistentProjects(sourceItems, targetItems)
 	for _, item := range notExistentItems {
 		if err = o.cloneProject(item.ProjectKey); err != nil {
-			logrus.Warnf("clone error, %v, %v", item, err)
+			logrus.Warnf("clone project error, %v, %v", item, err)
+		}
+	}
+
+	for _, item := range sourceItems {
+		if err = o.cloneProjectRoles(item.ProjectKey); err != nil {
+			logrus.Warnf("clone project role error, %v, %v", item, err)
+		}
+
+		if err = o.cloneProjectUsers(item.ProjectKey); err != nil {
+			logrus.Warnf("clone project user error, %v, %v", item, err)
 		}
 	}
 	return
 }
 
 func (o *Syncer) cloneProject(projectKey string) (err error) {
-	var project *accessServices.Project
-	if project, err = o.Source.ProjectService.Get(projectKey); err != nil {
+	var sourceItem *accessServices.Project
+	if sourceItem, err = o.Source.ProjectService.Get(projectKey); err != nil {
 		return
 	}
 
 	var projectExists bool
 	if projectExists, err = o.Target.IsProjectExists(projectKey); !projectExists {
-		logrus.Infof("create project %v", project.ProjectKey)
-		err = o.Target.ProjectService.Create(*wrapProjectToProjectParams(project))
+		logrus.Infof("create project %v", sourceItem.ProjectKey)
+		err = o.Target.ProjectService.Create(*wrapProjectToProjectParams(sourceItem))
 	} else {
 		logrus.Infof("project already exists %v", projectKey)
 	}
+	return
+}
+
+func (o *Syncer) cloneProjectRoles(projectKey string) (err error) {
+	var sourceItems []*accessServices.Role
+	if sourceItems, err = o.Source.ProjectService.GetRoles(projectKey); err != nil {
+		return
+	}
+
+	var targetItems []*accessServices.Role
+	if targetItems, err = o.Target.ProjectService.GetRoles(projectKey); err != nil {
+		return
+	}
+
+	notExistentItems := findNonExistentRoles(sourceItems, targetItems)
+	for _, item := range notExistentItems {
+		if err = o.cloneProjectRole(projectKey, item); err != nil {
+			logrus.Warnf("clone error, %v, %v", item, err)
+		}
+	}
+	return
+}
+
+func (o *Syncer) cloneProjectRole(projectKey string, role *accessServices.Role) (err error) {
+	logrus.Infof("create project '%v' role '%v'", projectKey, role.Name)
+	err = o.Target.ProjectService.CreateRole(projectKey, role)
+	return
+}
+
+func (o *Syncer) cloneProjectUsers(projectKey string) (err error) {
+	var sourceItems *accessServices.ProjectUsers
+	if sourceItems, err = o.Source.ProjectService.GetUsers(projectKey); err != nil {
+		return
+	}
+
+	var targetItems *accessServices.ProjectUsers
+	if targetItems, err = o.Target.ProjectService.GetUsers(projectKey); err != nil {
+		return
+	}
+
+	notExistentItems := findNonExistentProjectUsers(sourceItems, targetItems)
+	for _, item := range notExistentItems {
+		if err = o.cloneProjectUser(projectKey, item); err != nil {
+			logrus.Warnf("clone error, %v, %v", item, err)
+		}
+	}
+	return
+}
+
+func (o *Syncer) cloneProjectUser(projectKey string, user *accessServices.ProjectUser) (err error) {
+	logrus.Infof("create project '%v' user '%v'", projectKey, user.Name)
+	err = o.Target.ProjectService.UpdateUser(projectKey, user)
 	return
 }

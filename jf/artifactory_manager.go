@@ -400,3 +400,39 @@ func findNonExistentProjects(
 	}
 	return
 }
+
+func findNonExistentRoles(
+	sources []*accessServices.Role, targets []*accessServices.Role) (
+	ret []*accessServices.Role) {
+
+	targetNames := map[string]*accessServices.Role{}
+	for _, target := range targets {
+		targetNames[target.Name] = target
+	}
+
+	for _, source := range sources {
+		found := targetNames[source.Name]
+		if found == nil {
+			ret = append(ret, source)
+		}
+	}
+	return
+}
+
+func findNonExistentProjectUsers(
+	sources *accessServices.ProjectUsers, targets *accessServices.ProjectUsers) (
+	ret []*accessServices.ProjectUser) {
+
+	targetNames := map[string]*accessServices.ProjectUser{}
+	for _, target := range targets.Members {
+		targetNames[target.Name] = target
+	}
+
+	for _, source := range sources.Members {
+		found := targetNames[source.Name]
+		if found == nil {
+			ret = append(ret, source)
+		}
+	}
+	return
+}
