@@ -87,7 +87,7 @@ func (o *Syncer) CreateOrUpdateReplication(repo services.RepositoryDetails) (err
 	case Local:
 		err = o.createReplicationLocal(repo)
 	default:
-		logrus.Infof(o.Target.buildLog(
+		logrus.Debugf(o.Target.buildLog(
 			fmt.Sprintf("no need for replication of '%v' repository '%v'", repoType, repo.Key)))
 	}
 	return
