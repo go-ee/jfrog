@@ -4,7 +4,7 @@ import (
 	"github.com/go-ee/jfrog/jf"
 	"github.com/jfrog/jfrog-client-go/artifactory/services"
 	"github.com/urfave/cli/v2"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 )
 
@@ -15,7 +15,7 @@ type ExportUsersCmd struct {
 
 func NewExportUsersCmd() (ret *ExportUsersCmd) {
 	ret = &ExportUsersCmd{
-		ServerCmd:     NewServerCmd("server"),
+		ServerCmd:     NewServerCmd(""),
 		UsersFileFlag: NewUsersFileFlag(),
 	}
 

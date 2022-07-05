@@ -2,9 +2,9 @@ module github.com/go-ee/jfrog
 
 go 1.18
 
-replace github.com/go-ee/utils => /Users/z000ru5y/go/src/github.com/go-ee/utils
+replace github.com/go-ee/utils => /home/z000ru5y/go/src/github.com/go-ee/utils
 
-replace github.com/jfrog/jfrog-client-go => /Users/z000ru5y/go/src/github.com/go-ee/jfrog-client-go
+replace github.com/jfrog/jfrog-client-go => /home/z000ru5y/go/src/github.com/go-ee/jfrog-client-go
 
 require (
 	github.com/btcsuite/btcutil v1.0.2
@@ -12,7 +12,7 @@ require (
 	github.com/jfrog/jfrog-client-go v1.14.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/urfave/cli/v2 v2.4.0
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

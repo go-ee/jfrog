@@ -30,7 +30,12 @@ func (o *ServerFlagLabels) BuildLabel() (ret string) {
 }
 
 func buildLabelCommandPrefix(label string) string {
-	return fmt.Sprintf("%v-", label)
+	if label == "" {
+		return label
+	} else {
+		return fmt.Sprintf("%v-", label)
+	}
+
 }
 
 type UrlFlag struct {
