@@ -126,7 +126,7 @@ func (o *Syncer) createReplicationLocal(repo services.RepositoryDetails) (err er
 					return o.Source.UpdateReplication(*updateRepParams)
 				})
 		} else {
-			logrus.Infof(o.Target.buildLog(fmt.Sprintf("replication already configured '%v'", repo.Key)))
+			logrus.Debugf(o.Target.buildLog(fmt.Sprintf("replication already configured '%v'", repo.Key)))
 		}
 	}
 	return
@@ -156,7 +156,7 @@ func (o *Syncer) cloneRepo(sourceRepo services.RepositoryDetails) (err error) {
 			err = repoCloner.Clone(sourceRepo.Key)
 		}
 	} else {
-		logrus.Infof(o.Target.buildLog("repo already exists " + sourceRepo.Key))
+		logrus.Debugf(o.Target.buildLog("repo already exists " + sourceRepo.Key))
 	}
 	return
 }
@@ -331,7 +331,7 @@ func (o *Syncer) cloneProject(projectKey string) (err error) {
 		logrus.Infof("create project %v", sourceItem.ProjectKey)
 		err = o.Target.ProjectService.Create(*wrapProjectToProjectParams(sourceItem))
 	} else {
-		logrus.Infof("project already exists %v", projectKey)
+		logrus.Debugf("project already exists %v", projectKey)
 	}
 	return
 }

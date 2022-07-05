@@ -263,8 +263,6 @@ func buildRepoPackageTypeUrlPrefix(repo services.RepositoryDetails) (ret string)
 		ret = "api/composer/"
 	case Puppet:
 		ret = "api/puppet/"
-	case PyPi:
-		ret = "api/pypi/"
 	case RubyGems:
 		ret = "api/gems/"
 	case GitLfs:
