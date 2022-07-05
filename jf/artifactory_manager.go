@@ -25,6 +25,9 @@ type ArtifactoryManager struct {
 	Token          string
 
 	Executor exec.Executor
+
+	urlArtifactory string
+	urlAccess      string
 }
 
 func (o *ArtifactoryManager) Connect() (err error) {
@@ -72,17 +75,20 @@ func (o *ArtifactoryManager) getOrCreateAccessToken() (ret string, err error) {
 	if len(tokens) > 0 {
 		ret = tokens[0]
 	} else {
-		err = fmt.Errorf("create access token, not implemented yet")
+		logrus.Infof("create access token, not implemented yet")
+		//err = fmt.Errorf("create access token, not implemented yet")
 	}
 	return
 }
 
 func (o *ArtifactoryManager) buildArtifactoryConfig() (ret config.Config, err error) {
-	return o.buildConfig(fmt.Sprintf("%vartifactory/", o.Url), "")
+	o.urlArtifactory = fmt.Sprintf("%vartifactory/", o.Url)
+	return o.buildConfig(o.urlArtifactory, "")
 }
 
 func (o *ArtifactoryManager) buildAccessConfig(accessToken string) (ret config.Config, err error) {
-	return o.buildConfig(fmt.Sprintf("%vaccess/", o.Url), accessToken)
+	o.urlAccess = fmt.Sprintf("%vaccess/", o.Url)
+	return o.buildConfig(o.urlAccess, accessToken)
 }
 
 func (o *ArtifactoryManager) buildConfig(url string, accessToken string) (ret config.Config, err error) {
@@ -164,25 +170,37 @@ func (o *ArtifactoryManager) buildCreateReplicationParams(
 	repo services.RepositoryDetails) (ret *services.CreateReplicationParams) {
 
 	ret = &services.CreateReplicationParams{
-		ReplicationParams: utils.ReplicationParams{
-			Username:               o.User,
-			Password:               o.Password,
-			Url:                    o.buildReplicationUrl(repo),
-			CronExp:                "0 0 1 * * ?",
-			RepoKey:                repo.Key,
-			EnableEventReplication: true,
-			SocketTimeoutMillis:    0,
-			Enabled:                true,
-			SyncDeletes:            false,
-			SyncProperties:         true,
-			SyncStatistics:         true,
-		}}
+		ReplicationParams: o.buildReplicationParams(repo)}
 	return
+}
+
+func (o *ArtifactoryManager) buildUpdateReplicationParams(
+	repo services.RepositoryDetails) (ret *services.UpdateReplicationParams) {
+
+	ret = &services.UpdateReplicationParams{
+		ReplicationParams: o.buildReplicationParams(repo)}
+	return
+}
+
+func (o *ArtifactoryManager) buildReplicationParams(repo services.RepositoryDetails) utils.ReplicationParams {
+	return utils.ReplicationParams{
+		Username:               o.User,
+		Password:               o.Password,
+		Url:                    o.buildReplicationUrl(repo),
+		CronExp:                "0 0 1 * * ?",
+		RepoKey:                repo.Key,
+		EnableEventReplication: true,
+		SocketTimeoutMillis:    0,
+		Enabled:                true,
+		SyncDeletes:            false,
+		SyncProperties:         true,
+		SyncStatistics:         true,
+	}
 }
 
 func (o *ArtifactoryManager) buildReplicationUrl(repo services.RepositoryDetails) (ret string) {
 	return fmt.Sprintf(
-		"%v%v%v", o.Url, buildRepoPackageTypeUrlPrefix(repo), repo.Key)
+		"%v%v%v", o.urlArtifactory, buildRepoPackageTypeUrlPrefix(repo), repo.Key)
 }
 
 func (o *ArtifactoryManager) buildLog(info string) (ret string) {
@@ -246,7 +264,7 @@ func buildRepoPackageTypeUrlPrefix(repo services.RepositoryDetails) (ret string)
 	case Puppet:
 		ret = "api/puppet/"
 	case PyPi:
-		ret = "api/pypi/pypi-local/"
+		ret = "api/pypi/"
 	case RubyGems:
 		ret = "api/gems/"
 	case GitLfs:

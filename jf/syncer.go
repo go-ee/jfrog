@@ -57,7 +57,7 @@ func (o *Syncer) CloneAndCreateReplication(repoKey string) (err error) {
 
 func (o *Syncer) cloneRepoAndCreateReplication(repo services.RepositoryDetails) (err error) {
 	if err = o.cloneRepo(repo); err == nil {
-		err = o.CreateReplication(repo)
+		err = o.CreateOrUpdateReplication(repo)
 	}
 	return
 }
@@ -69,7 +69,7 @@ func (o *Syncer) Connect() (err error) {
 	return
 }
 
-func (o *Syncer) CreateReplication(repo services.RepositoryDetails) (err error) {
+func (o *Syncer) CreateOrUpdateReplication(repo services.RepositoryDetails) (err error) {
 
 	var repoExists bool
 	if repoExists, err = o.Target.IsRepoExists(repo.Key); err != nil {
@@ -108,14 +108,26 @@ func (o *Syncer) createReplicationRemote(repo services.RepositoryDetails) (err e
 }
 
 func (o *Syncer) createReplicationLocal(repo services.RepositoryDetails) (err error) {
-	if _, findErr := o.Source.GetReplication(repo.Key); findErr != nil {
+	if reps, findErr := o.Source.GetReplication(repo.Key); findErr != nil {
 		createReplicationParams := o.Target.buildCreateReplicationParams(repo)
 		err = o.Source.Execute(fmt.Sprintf("create PUSH replication '%v'", createReplicationParams.Url),
 			func() error {
 				return o.Source.CreateReplication(*createReplicationParams)
 			})
 	} else {
-		logrus.Infof(o.Target.buildLog(fmt.Sprintf("replication already configured '%v'", repo.Key)))
+		rep := reps[0]
+		updateRepParams := o.Target.buildUpdateReplicationParams(repo)
+
+		if rep.Username != updateRepParams.Username ||
+			//rep.Password != updateRepParams.Password ||
+			rep.Url != updateRepParams.Url {
+			err = o.Source.Execute(fmt.Sprintf("update PUSH replication '%v'", updateRepParams.Url),
+				func() error {
+					return o.Source.UpdateReplication(*updateRepParams)
+				})
+		} else {
+			logrus.Infof(o.Target.buildLog(fmt.Sprintf("replication already configured '%v'", repo.Key)))
+		}
 	}
 	return
 }
