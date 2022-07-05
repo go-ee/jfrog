@@ -349,17 +349,9 @@ func prepareRepositoryBaseParams(params *services.RepositoryBaseParams) {
 func findNonExistentUsers(
 	sources []*services.User, targets []*services.User) (ret []*services.User) {
 
-	targetNames := map[string]*services.User{}
-	for _, target := range targets {
-		targetNames[target.Name] = target
-	}
-
-	for _, source := range sources {
-		found := targetNames[source.Name]
-		if found == nil {
-			ret = append(ret, source)
-		}
-	}
+	ret = filterSourceNonExistentInTargets(sources, targets, func(item *services.User) string {
+		return item.Name
+	})
 	return
 }
 
@@ -367,17 +359,9 @@ func findNonExistentPermissions(
 	sources []*services.PermissionTargetParams, targets []*services.PermissionTargetParams) (
 	ret []*services.PermissionTargetParams) {
 
-	targetNames := map[string]*services.PermissionTargetParams{}
-	for _, target := range targets {
-		targetNames[target.Name] = target
-	}
-
-	for _, source := range sources {
-		found := targetNames[source.Name]
-		if found == nil {
-			ret = append(ret, source)
-		}
-	}
+	ret = filterSourceNonExistentInTargets(sources, targets, func(item *services.PermissionTargetParams) string {
+		return item.Name
+	})
 	return
 }
 
@@ -385,17 +369,9 @@ func findNonExistentGroups(
 	sources []*services.Group, targets []*services.Group) (
 	ret []*services.Group) {
 
-	targetNames := map[string]*services.Group{}
-	for _, target := range targets {
-		targetNames[target.Name] = target
-	}
-
-	for _, source := range sources {
-		found := targetNames[source.Name]
-		if found == nil {
-			ret = append(ret, source)
-		}
-	}
+	ret = filterSourceNonExistentInTargets(sources, targets, func(item *services.Group) string {
+		return item.Name
+	})
 	return
 }
 
@@ -403,17 +379,9 @@ func findNonExistentProjects(
 	sources []*accessServices.Project, targets []*accessServices.Project) (
 	ret []*accessServices.Project) {
 
-	targetNames := map[string]*accessServices.Project{}
-	for _, target := range targets {
-		targetNames[target.ProjectKey] = target
-	}
-
-	for _, source := range sources {
-		found := targetNames[source.ProjectKey]
-		if found == nil {
-			ret = append(ret, source)
-		}
-	}
+	ret = filterSourceNonExistentInTargets(sources, targets, func(item *accessServices.Project) string {
+		return item.ProjectKey
+	})
 	return
 }
 
@@ -421,32 +389,33 @@ func findNonExistentRoles(
 	sources []*accessServices.Role, targets []*accessServices.Role) (
 	ret []*accessServices.Role) {
 
-	targetNames := map[string]*accessServices.Role{}
-	for _, target := range targets {
-		targetNames[target.Name] = target
-	}
-
-	for _, source := range sources {
-		found := targetNames[source.Name]
-		if found == nil {
-			ret = append(ret, source)
-		}
-	}
+	ret = filterSourceNonExistentInTargets(sources, targets, func(item *accessServices.Role) string {
+		return item.Name
+	})
 	return
 }
 
 func findNonExistentProjectUsers(
-	sources *accessServices.ProjectUsers, targets *accessServices.ProjectUsers) (
+	sources []*accessServices.ProjectUser, targets []*accessServices.ProjectUser) (
 	ret []*accessServices.ProjectUser) {
 
-	targetNames := map[string]*accessServices.ProjectUser{}
-	for _, target := range targets.Members {
-		targetNames[target.Name] = target
+	ret = filterSourceNonExistentInTargets(sources, targets, func(item *accessServices.ProjectUser) string {
+		return item.Name
+	})
+	return
+}
+
+func filterSourceNonExistentInTargets[T any](
+	sources []T, targets []T, compareKey func(T) string) (
+	ret []T) {
+
+	targetNames := map[string]T{}
+	for _, target := range targets {
+		targetNames[compareKey(target)] = target
 	}
 
-	for _, source := range sources.Members {
-		found := targetNames[source.Name]
-		if found == nil {
+	for _, source := range sources {
+		if _, ok := targetNames[compareKey(source)]; !ok {
 			ret = append(ret, source)
 		}
 	}

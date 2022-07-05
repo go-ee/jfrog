@@ -373,7 +373,7 @@ func (o *Syncer) cloneProjectUsers(projectKey string) (err error) {
 		return
 	}
 
-	notExistentItems := findNonExistentProjectUsers(sourceItems, targetItems)
+	notExistentItems := findNonExistentProjectUsers(sourceItems.Members, targetItems.Members)
 	for _, item := range notExistentItems {
 		if err = o.cloneProjectUser(projectKey, item); err != nil {
 			logrus.Warnf("clone error, %v, %v", item, err)
