@@ -39,9 +39,22 @@ type UrlFlag struct {
 
 func NewUrlFlag(label string) *UrlFlag {
 	return &UrlFlag{cliu.NewStringFlag(&cli.StringFlag{
-		Name:  fmt.Sprintf("%vurl", label),
-		Usage: fmt.Sprintf("The url of the artifactory %vserver.", label),
+		Name:     fmt.Sprintf("%vurl", label),
+		Usage:    fmt.Sprintf("The url of the artifactory %vserver.", label),
+		Required: true,
 	})}
+}
+
+func (o *UrlFlag) NormalizedUrl() (ret string) {
+	ret = o.CurrentValue
+	if !strings.HasSuffix(ret, "/") {
+		ret = ret + "/"
+	}
+
+	if !strings.HasPrefix(ret, "http") {
+		ret = "https://" + ret
+	}
+	return
 }
 
 type UserFlag struct {
@@ -137,4 +150,16 @@ func NewProjectsFlag() *ProjectsFlag {
 
 func (o *ProjectsFlag) ProjectKeys() []string {
 	return strings.Split(o.CurrentValue, ",")
+}
+
+type UsersFileFlag struct {
+	*cliu.StringFlag
+}
+
+func NewUsersFileFlag() *UsersFileFlag {
+	return &UsersFileFlag{cliu.NewStringFlag(&cli.StringFlag{
+		Name:  fmt.Sprintf("usersFile"),
+		Usage: fmt.Sprintf("File for users"),
+		Value: "users.yaml",
+	})}
 }

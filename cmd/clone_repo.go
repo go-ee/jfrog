@@ -6,21 +6,21 @@ import (
 )
 
 type CloneRepoCmd struct {
-	*BaseCmd
+	*DoubleServerCmd
 	RepoKeyFlag *RepoKeyFlag
 }
 
 func NewCloneRepoCmd() (ret *CloneRepoCmd) {
 	ret = &CloneRepoCmd{
-		BaseCmd:     NewBaseCmd(),
-		RepoKeyFlag: NewRepoKeyFlag(),
+		DoubleServerCmd: NewDoubleServerCmd(),
+		RepoKeyFlag:     NewRepoKeyFlag(),
 	}
 
 	ret.Command = &cli.Command{
 		Name:  "clone-repo",
 		Usage: "Create repository of source Artifactory server in target server",
 		Flags: []cli.Flag{
-			ret.Source.Url, ret.Source.User, ret.Source.Password, ret.Source.Token,
+			ret.Server.Url, ret.Server.User, ret.Server.Password, ret.Server.Token,
 			ret.Target.Url, ret.Target.User, ret.Target.Password, ret.Target.Token,
 			ret.RepoKeyFlag, ret.DryRunFlag,
 		},

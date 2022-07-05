@@ -6,19 +6,19 @@ import (
 )
 
 type CloneReposCmd struct {
-	*BaseCmd
+	*DoubleServerCmd
 }
 
 func NewCloneReposCmd() (ret *CloneReposCmd) {
 	ret = &CloneReposCmd{
-		BaseCmd: NewBaseCmd(),
+		DoubleServerCmd: NewDoubleServerCmd(),
 	}
 
 	ret.Command = &cli.Command{
 		Name:  "clone-repos",
 		Usage: "Create repositories of source Artifactory server in target server",
 		Flags: []cli.Flag{
-			ret.Source.Url, ret.Source.User, ret.Source.Password, ret.Source.Token,
+			ret.Server.Url, ret.Server.User, ret.Server.Password, ret.Server.Token,
 			ret.Target.Url, ret.Target.User, ret.Target.Password, ret.Target.Token,
 			ret.DryRunFlag,
 		},

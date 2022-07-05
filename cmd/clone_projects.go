@@ -6,19 +6,19 @@ import (
 )
 
 type CloneProjectsCmd struct {
-	*BaseCmd
+	*DoubleServerCmd
 }
 
 func NewCloneProjectsCmd() (ret *CloneProjectsCmd) {
 	ret = &CloneProjectsCmd{
-		BaseCmd: NewBaseCmd(),
+		DoubleServerCmd: NewDoubleServerCmd(),
 	}
 
 	ret.Command = &cli.Command{
 		Name:  "clone-projects",
 		Usage: "Create projects of source Artifactory server in target server",
 		Flags: []cli.Flag{
-			ret.Source.Url, ret.Source.User, ret.Source.Password, ret.Source.Token,
+			ret.Server.Url, ret.Server.User, ret.Server.Password, ret.Server.Token,
 			ret.Target.Url, ret.Target.User, ret.Target.Password, ret.Target.Token,
 			ret.DryRunFlag,
 		},

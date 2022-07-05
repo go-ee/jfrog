@@ -6,26 +6,26 @@ import (
 )
 
 type EnableReplicationsCmd struct {
-	*BaseCmd
+	*ServerCmd
 }
 
 func NewEnableReplicationsCmd() (ret *EnableReplicationsCmd) {
 	ret = &EnableReplicationsCmd{
-		BaseCmd: NewBaseCmd(),
+		ServerCmd: NewServerCmd("server"),
 	}
 
 	ret.Command = &cli.Command{
 		Name:  "enable-replications",
 		Usage: "Enable replications in Artifactory",
 		Flags: []cli.Flag{
-			ret.Source.Url, ret.Source.User, ret.Source.Password, ret.Source.Token,
+			ret.Server.Url, ret.Server.User, ret.Server.Password, ret.Server.Token,
 			ret.DryRunFlag,
 		},
 	}
 
 	ret.Command.Action = func(context *cli.Context) (err error) {
 		var artifactoryManager *jf.ArtifactoryManager
-		if artifactoryManager, err = ret.buildArtifactoryManagerAndConnect(); err == nil {
+		if artifactoryManager, err = ret.Server.buildArtifactoryManagerAndConnect(ret.DryRunFlag); err == nil {
 			err = artifactoryManager.EnableReplications()
 		}
 		return

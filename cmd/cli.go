@@ -40,31 +40,43 @@ func NewCli(common *cliu.CommonFlags, appName string, usage string) (ret *Cli) {
 		NewCloneGroupsCmd().Command,
 		NewCloneProjectsCmd().Command,
 		NewCipherCmd().Command,
+		NewExportUsersCmd().Command,
 		cliu.NewMarkdownCmd(ret.App).Command,
 	}
 	return
 }
 
-type BaseCmd struct {
+type ServerCmd struct {
 	*cliu.BaseCommand
-	Source     *ServerFlagLabels
+	Server     *ServerFlagLabels
+	DryRunFlag *DryRunFlag
+}
+
+func NewServerCmd(serverLabel string) *ServerCmd {
+	return &ServerCmd{
+		BaseCommand: &cliu.BaseCommand{},
+		Server:      NewServerDef(serverLabel),
+		DryRunFlag:  NewDryRunFlag()}
+}
+
+type DoubleServerCmd struct {
+	*ServerCmd
 	Target     *ServerFlagLabels
 	DryRunFlag *DryRunFlag
 }
 
-func NewBaseCmd() *BaseCmd {
-	return &BaseCmd{
-		BaseCommand: &cliu.BaseCommand{},
-		Source:      NewServerDef("source"),
-		Target:      NewServerDef("target"),
-		DryRunFlag:  NewDryRunFlag()}
+func NewDoubleServerCmd() *DoubleServerCmd {
+	return &DoubleServerCmd{
+		ServerCmd:  NewServerCmd("source"),
+		Target:     NewServerDef("target"),
+		DryRunFlag: NewDryRunFlag()}
 }
 
-func (o *BaseCmd) buildSyncerAndConnect() (ret *jf.Syncer, err error) {
+func (o *DoubleServerCmd) buildSyncerAndConnect() (ret *jf.Syncer, err error) {
 	executor := buildExecutor(o.DryRunFlag)
 
 	ret, err = jf.NewSyncerAndConnect(
-		buildArtifactoryManager(o.Source, executor),
+		buildArtifactoryManager(o.Server, executor),
 		buildArtifactoryManager(o.Target, executor))
 	return
 }
@@ -78,10 +90,12 @@ func buildExecutor(dryRunFlag *DryRunFlag) (ret exec.Executor) {
 	return
 }
 
-func (o *BaseCmd) buildArtifactoryManagerAndConnect() (ret *jf.ArtifactoryManager, err error) {
-	executor := buildExecutor(o.DryRunFlag)
+func (o *ServerFlagLabels) buildArtifactoryManagerAndConnect(
+	dryRunFlag *DryRunFlag) (ret *jf.ArtifactoryManager, err error) {
 
-	ret = buildArtifactoryManager(o.Source, executor)
+	executor := buildExecutor(dryRunFlag)
+
+	ret = buildArtifactoryManager(o, executor)
 	err = ret.Connect()
 	return
 }
@@ -89,7 +103,7 @@ func (o *BaseCmd) buildArtifactoryManagerAndConnect() (ret *jf.ArtifactoryManage
 func buildArtifactoryManager(server *ServerFlagLabels, executor exec.Executor) *jf.ArtifactoryManager {
 	return &jf.ArtifactoryManager{
 		Label:    server.BuildLabel(),
-		Url:      server.Url.CurrentValue,
+		Url:      server.Url.NormalizedUrl(),
 		User:     server.User.CurrentValue,
 		Password: server.Password.CurrentValue,
 		Token:    server.Token.CurrentValue,
