@@ -225,6 +225,21 @@ func (o *ArtifactoryManager) IsProjectExists(projectKey string) (ret bool, err e
 	return
 }
 
+func (o *ArtifactoryManager) ExportMetadata(serverExportPath string) (err error) {
+	yes := true
+	no := false
+	params := services.ExportParams{
+		ExportPath:      serverExportPath,
+		IncludeMetadata: &yes,
+		CreateArchive:   &yes,
+		Verbose:         &no,
+		M2:              &no,
+		ExcludeContent:  &yes,
+	}
+	err = o.Export(params)
+	return
+}
+
 func wrapNameToUserParams(userName string) *services.UserParams {
 	return &services.UserParams{UserDetails: services.User{Name: userName}}
 }

@@ -11,7 +11,7 @@ type EnableReplicationsCmd struct {
 
 func NewEnableReplicationsCmd() (ret *EnableReplicationsCmd) {
 	ret = &EnableReplicationsCmd{
-		ServerCmd: NewServerCmd("server"),
+		ServerCmd: NewServerCmd(""),
 	}
 
 	ret.Command = &cli.Command{

@@ -11,7 +11,7 @@ type DisableReplicationsCmd struct {
 
 func NewDisableReplicationsCmd() (ret *DisableReplicationsCmd) {
 	ret = &DisableReplicationsCmd{
-		ServerCmd: NewServerCmd("server"),
+		ServerCmd: NewServerCmd(""),
 	}
 
 	ret.Command = &cli.Command{

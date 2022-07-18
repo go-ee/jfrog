@@ -168,3 +168,15 @@ func NewUsersFileFlag() *UsersFileFlag {
 		Value: "users.yaml",
 	})}
 }
+
+type ServerPathFlag struct {
+	*cliu.StringFlag
+}
+
+func NewServerPathFlag() *ServerPathFlag {
+	return &ServerPathFlag{cliu.NewStringFlag(&cli.StringFlag{
+		Name:  fmt.Sprintf("serverPath"),
+		Usage: fmt.Sprintf("Server path"),
+		Value: "/tmp/export",
+	})}
+}
