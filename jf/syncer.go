@@ -6,6 +6,8 @@ import (
 	accessServices "github.com/jfrog/jfrog-client-go/access/services"
 	"github.com/jfrog/jfrog-client-go/artifactory/services"
 	"github.com/sirupsen/logrus"
+	"reflect"
+	"strings"
 )
 
 type Syncer struct {
@@ -199,7 +201,7 @@ func (o *Syncer) CloneUsers() (err error) {
 		return
 	}
 
-	notExistentItems := findNonExistentUsers(sourceItems, targetItems)
+	notExistentItems, _ := splitNonExistentAndExistentUsers(sourceItems, targetItems)
 	for _, item := range notExistentItems {
 		if err = o.cloneUser(item.Name); err != nil {
 			logrus.Warnf("clone error, %v, %v", item, err)
@@ -216,6 +218,11 @@ func (o *Syncer) cloneUser(userName string) (err error) {
 	}
 	if user.Email == "" {
 		user.Email = user.Name
+		if strings.Contains(user.Name, "@") {
+			user.Email = user.Name
+		} else {
+			user.Email = fmt.Sprintf("%v@internal.local", user.Name)
+		}
 	}
 	if user.Password == "" {
 		user.Password = stringu.GeneratePassword()
@@ -237,16 +244,28 @@ func (o *Syncer) ClonePermissions() (err error) {
 		return
 	}
 
-	notExistentItems := findNonExistentPermissions(sourceItems, targetItems)
+	notExistentItems, existentItems := splitNonExistentAndExistentPermissions(sourceItems, targetItems)
 	for _, item := range notExistentItems {
 		if err = o.clonePermission(item.Name); err != nil {
 			logrus.Warnf("clone error, %v, %v", item, err)
 		}
 	}
+
+	for _, item := range existentItems {
+		if err = o.updatePermission(item.Name); err != nil {
+			logrus.Warnf("update permission error, %v, %v", item, err)
+		}
+	}
+
 	return
 }
 
 func (o *Syncer) clonePermission(permissionTargetName string) (err error) {
+	if strings.HasPrefix(permissionTargetName, "INTERNAL_") {
+		logrus.Debugf("skip creation permission target %v", permissionTargetName)
+		return
+	}
+
 	var sourcePermissionTargetParams *services.PermissionTargetParams
 	if sourcePermissionTargetParams, err = o.Source.GetPermissionTarget(permissionTargetName); err != nil {
 		return
@@ -254,6 +273,28 @@ func (o *Syncer) clonePermission(permissionTargetName string) (err error) {
 
 	logrus.Infof("create permission target %v", sourcePermissionTargetParams.Name)
 	err = o.Target.CreatePermissionTarget(*sourcePermissionTargetParams)
+	return
+}
+
+func (o *Syncer) updatePermission(permissionTargetName string) (err error) {
+	if strings.HasPrefix(permissionTargetName, "INTERNAL_") {
+		logrus.Debugf("skip updating permission target %v", permissionTargetName)
+		return
+	}
+
+	var source, target *services.PermissionTargetParams
+	if source, err = o.Source.GetPermissionTarget(permissionTargetName); err != nil {
+		return
+	}
+
+	if target, err = o.Target.GetPermissionTarget(permissionTargetName); err != nil {
+		return
+	}
+
+	if !reflect.DeepEqual(source, target) {
+		logrus.Infof("update permission target %v", source.Name)
+		err = o.Target.UpdatePermissionTarget(*source)
+	}
 	return
 }
 
@@ -269,7 +310,7 @@ func (o *Syncer) CloneGroups() (err error) {
 		return
 	}
 
-	notExistentItems := findNonExistentGroups(sourceItems, targetItems)
+	notExistentItems, _ := splitNonExistentAndExistentGroups(sourceItems, targetItems)
 	for _, item := range notExistentItems {
 		if err = o.cloneGroup(item.Name); err != nil {
 			logrus.Warnf("clone error, %v, %v", item, err)
@@ -301,7 +342,7 @@ func (o *Syncer) CloneProjects() (err error) {
 		return
 	}
 
-	notExistentItems := findNonExistentProjects(sourceItems, targetItems)
+	notExistentItems, _ := splitNonExistentAndExistentProjects(sourceItems, targetItems)
 	for _, item := range notExistentItems {
 		if err = o.cloneProject(item.ProjectKey); err != nil {
 			logrus.Warnf("clone project error, %v, %v", item, err)
@@ -347,9 +388,15 @@ func (o *Syncer) cloneProjectRoles(projectKey string) (err error) {
 		return
 	}
 
-	notExistentItems := findNonExistentRoles(sourceItems, targetItems)
+	notExistentItems, existentItems := splitNonExistentAndExistentRoles(sourceItems, targetItems)
 	for _, item := range notExistentItems {
 		if err = o.cloneProjectRole(projectKey, item); err != nil {
+			logrus.Warnf("clone error, %v, %v", item, err)
+		}
+	}
+
+	for _, item := range existentItems {
+		if err = o.updateProjectRole(projectKey, item); err != nil {
 			logrus.Warnf("clone error, %v, %v", item, err)
 		}
 	}
@@ -357,7 +404,21 @@ func (o *Syncer) cloneProjectRoles(projectKey string) (err error) {
 }
 
 func (o *Syncer) cloneProjectRole(projectKey string, role *accessServices.Role) (err error) {
+	if role.Type == "PREDEFINED" || role.Type == "ADMIN" {
+		logrus.Infof("skip creation of %v project '%v' role '%v'", role.Type, projectKey, role.Name)
+		return
+	}
 	logrus.Infof("create project '%v' role '%v'", projectKey, role.Name)
+	err = o.Target.ProjectService.CreateRole(projectKey, role)
+	return
+}
+
+func (o *Syncer) updateProjectRole(projectKey string, role *accessServices.Role) (err error) {
+	if role.Type == "PREDEFINED" || role.Type == "ADMIN" {
+		logrus.Infof("skip updating of %v project '%v' role '%v'", role.Type, projectKey, role.Name)
+		return
+	}
+	logrus.Infof("update project '%v' role '%v'", projectKey, role.Name)
 	err = o.Target.ProjectService.CreateRole(projectKey, role)
 	return
 }
@@ -373,10 +434,16 @@ func (o *Syncer) cloneProjectUsers(projectKey string) (err error) {
 		return
 	}
 
-	notExistentItems := findNonExistentProjectUsers(sourceItems.Members, targetItems.Members)
+	notExistentItems, existentItems := findNonExistentProjectUsers(sourceItems.Members, targetItems.Members)
 	for _, item := range notExistentItems {
 		if err = o.cloneProjectUser(projectKey, item); err != nil {
 			logrus.Warnf("clone error, %v, %v", item, err)
+		}
+	}
+
+	for _, item := range existentItems {
+		if err = o.updateProjectUser(projectKey, item); err != nil {
+			logrus.Warnf("update error, %v, %v", item, err)
 		}
 	}
 	return
@@ -384,6 +451,12 @@ func (o *Syncer) cloneProjectUsers(projectKey string) (err error) {
 
 func (o *Syncer) cloneProjectUser(projectKey string, user *accessServices.ProjectUser) (err error) {
 	logrus.Infof("create project '%v' user '%v'", projectKey, user.Name)
+	err = o.Target.ProjectService.UpdateUser(projectKey, user)
+	return
+}
+
+func (o *Syncer) updateProjectUser(projectKey string, user *accessServices.ProjectUser) (err error) {
+	logrus.Infof("update project '%v' user '%v'", projectKey, user.Name)
 	err = o.Target.ProjectService.UpdateUser(projectKey, user)
 	return
 }
