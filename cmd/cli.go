@@ -4,9 +4,7 @@ import (
 	"github.com/go-ee/jfrog/jf"
 	"github.com/go-ee/utils/cliu"
 	"github.com/go-ee/utils/exec"
-	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
-	"go.uber.org/zap"
 )
 
 type Cli struct {
@@ -54,10 +52,9 @@ type ServerCmd struct {
 }
 
 func NewServerCmd(serverLabel string) *ServerCmd {
-	log := lg.NewZapProdLogger()
 	return &ServerCmd{
-		BaseCommand: &cliu.BaseCommand{Log: log},
-		Server:      NewServerDef(serverLabel, log),
+		BaseCommand: &cliu.BaseCommand{},
+		Server:      NewServerDef(serverLabel),
 		DryRunFlag:  NewDryRunFlag()}
 }
 
@@ -71,12 +68,12 @@ func NewDoubleServerCmd() *DoubleServerCmd {
 	cmd := NewServerCmd("source")
 	return &DoubleServerCmd{
 		ServerCmd:  cmd,
-		Target:     NewServerDef("target", cmd.Log),
+		Target:     NewServerDef("target"),
 		DryRunFlag: NewDryRunFlag()}
 }
 
 func (o *DoubleServerCmd) buildSyncerAndConnect() (ret *jf.Syncer, err error) {
-	executor := buildExecutor(o.DryRunFlag, o.Log)
+	executor := buildExecutor(o.DryRunFlag)
 
 	ret, err = jf.NewSyncerAndConnect(
 		buildArtifactoryManager(o.Server, executor),
@@ -84,11 +81,11 @@ func (o *DoubleServerCmd) buildSyncerAndConnect() (ret *jf.Syncer, err error) {
 	return
 }
 
-func buildExecutor(dryRunFlag *DryRunFlag, logger *zap.SugaredLogger) (ret exec.Executor) {
+func buildExecutor(dryRunFlag *DryRunFlag) (ret exec.Executor) {
 	if dryRunFlag.CurrentValue {
-		ret = &exec.SkipExecutor{Log: logger}
+		ret = &exec.SkipExecutor{}
 	} else {
-		ret = &exec.LogExecutor{Log: logger}
+		ret = &exec.LogExecutor{}
 	}
 	return
 }
@@ -96,7 +93,7 @@ func buildExecutor(dryRunFlag *DryRunFlag, logger *zap.SugaredLogger) (ret exec.
 func (o *ServerDef) buildArtifactoryManagerAndConnect(
 	dryRunFlag *DryRunFlag) (ret *jf.ArtifactoryManager, err error) {
 
-	executor := buildExecutor(dryRunFlag, o.Log)
+	executor := buildExecutor(dryRunFlag)
 
 	ret = buildArtifactoryManager(o, executor)
 	err = ret.Connect()
@@ -110,7 +107,6 @@ func buildArtifactoryManager(server *ServerDef, executor exec.Executor) *jf.Arti
 		User:     server.User.CurrentValue,
 		Password: server.Password.CurrentValue,
 		Token:    server.Token.CurrentValue,
-		Log:      server.Log,
 
 		Executor: executor,
 	}

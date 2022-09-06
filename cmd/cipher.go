@@ -15,7 +15,7 @@ type CipherCmd struct {
 
 func NewCipherCmd() (ret *CipherCmd) {
 	ret = &CipherCmd{
-		BaseCommand:   &cliu.BaseCommand{Log: lg.NewZapProdLogger()},
+		BaseCommand:   &cliu.BaseCommand{},
 		MasterKeyFlag: NewMasterKeyFlag(),
 		SecretFlag:    NewSecretFlag(),
 	}
@@ -37,7 +37,7 @@ func NewCipherCmd() (ret *CipherCmd) {
 
 		var decrypted []byte
 		if decrypted, err = cipher.Decrypt(ret.SecretFlag.CurrentValue); err == nil {
-			ret.Log.Infof("decrypted: %s", decrypted)
+			lg.LOG.Infof("decrypted: %s", decrypted)
 		}
 		return
 	}

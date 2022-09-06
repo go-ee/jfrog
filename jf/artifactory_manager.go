@@ -3,6 +3,7 @@ package jf
 import (
 	"fmt"
 	"github.com/go-ee/utils/exec"
+	"github.com/go-ee/utils/lg"
 	"github.com/jfrog/jfrog-client-go/access"
 	accessServices "github.com/jfrog/jfrog-client-go/access/services"
 	"github.com/jfrog/jfrog-client-go/artifactory"
@@ -10,7 +11,6 @@ import (
 	"github.com/jfrog/jfrog-client-go/artifactory/services"
 	"github.com/jfrog/jfrog-client-go/artifactory/services/utils"
 	"github.com/jfrog/jfrog-client-go/config"
-	"go.uber.org/zap"
 	"strings"
 )
 
@@ -23,9 +23,7 @@ type ArtifactoryManager struct {
 	User           string
 	Password       string
 	Token          string
-
-	Log      *zap.SugaredLogger
-	Executor exec.Executor
+	Executor       exec.Executor
 
 	urlArtifactory string
 	urlAccess      string
@@ -76,7 +74,7 @@ func (o *ArtifactoryManager) getOrCreateAccessToken() (ret string, err error) {
 	if len(tokens) > 0 {
 		ret = tokens[0]
 	} else {
-		o.Log.Infof("create access token, not implemented yet")
+		lg.LOG.Infof("create access token, not implemented yet")
 		//err = fmt.Errorf("create access token, not implemented yet")
 	}
 	return
@@ -137,7 +135,7 @@ func (o *ArtifactoryManager) ChangeReplicationsStatus(enable bool) (err error) {
 	repos, err = o.GetAllRepositories()
 	for _, repo := range *repos {
 		if err = o.ChangeReplicationStatus(repo, enable); err != nil {
-			o.Log.Warnf("change replication error, %v, %v", repo.Key, err)
+			lg.LOG.Warnf("change replication error, %v, %v", repo.Key, err)
 		}
 	}
 	return
@@ -146,7 +144,7 @@ func (o *ArtifactoryManager) ChangeReplicationsStatus(enable bool) (err error) {
 func (o *ArtifactoryManager) ChangeReplicationStatus(repo services.RepositoryDetails, enable bool) (err error) {
 	if replications, findErr := o.GetReplication(repo.Key); findErr == nil {
 
-		o.Log.Debugf(o.buildLog(fmt.Sprintf("disable replication '%v'", repo.Key)))
+		lg.LOG.Debugf(o.buildLog(fmt.Sprintf("disable replication '%v'", repo.Key)))
 		for _, replication := range replications {
 
 			if replication.Enabled != enable {
@@ -161,7 +159,7 @@ func (o *ArtifactoryManager) ChangeReplicationStatus(repo services.RepositoryDet
 			}
 		}
 	} else {
-		o.Log.Debugf(o.buildLog(fmt.Sprintf("no replication configured '%v'", repo.Key)))
+		lg.LOG.Debugf(o.buildLog(fmt.Sprintf("no replication configured '%v'", repo.Key)))
 	}
 
 	return

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/go-ee/utils/cliu"
 	"github.com/urfave/cli/v2"
-	"go.uber.org/zap"
 	"strings"
 )
 
@@ -13,16 +12,14 @@ type ServerDef struct {
 	User     *UserFlag
 	Password *PasswordTag
 	Token    *TokenTag
-	Log      *zap.SugaredLogger
 }
 
-func NewServerDef(label string, log *zap.SugaredLogger) *ServerDef {
+func NewServerDef(label string) *ServerDef {
 	return &ServerDef{
 		Url:      NewUrlFlag(buildLabelCommandPrefix(label)),
 		User:     NewUserFlag(buildLabelCommandPrefix(label)),
 		Password: NewPasswordFlag(buildLabelCommandPrefix(label)),
 		Token:    NewTokenTag(buildLabelCommandPrefix(label)),
-		Log:      log,
 	}
 }
 

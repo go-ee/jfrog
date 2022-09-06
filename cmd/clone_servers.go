@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/go-ee/jfrog/jf"
+	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
 )
 
@@ -27,25 +28,24 @@ func NewCloneServesCmd() (ret *CloneServersCmd) {
 	ret.Command.Action = func(context *cli.Context) (err error) {
 		var syncer *jf.Syncer
 		if syncer, err = ret.buildSyncerAndConnect(); err == nil {
-			logger := ret.Log
 			if err = syncer.CloneUsers(); err != nil {
-				logger.Debugf("an error at cloning of users from %v to %v: %v",
+				lg.LOG.Debugf("an error at cloning of users from %v to %v: %v",
 					ret.Server.Url, ret.Target.Url, err)
 			}
 			if err = syncer.CloneReposAndCreateReplications(); err != nil {
-				logger.Debugf("an error at cloning of repos from %v to %v: %v",
+				lg.LOG.Debugf("an error at cloning of repos from %v to %v: %v",
 					ret.Server.Url, ret.Target.Url, err)
 			}
 			if err = syncer.ClonePermissions(); err != nil {
-				logger.Debugf("an error at cloning of permissions from %v to %v: %v",
+				lg.LOG.Debugf("an error at cloning of permissions from %v to %v: %v",
 					ret.Server.Url, ret.Target.Url, err)
 			}
 			if err = syncer.CloneProjects(); err != nil {
-				logger.Debugf("an error at cloning of projects from %v to %v: %v",
+				lg.LOG.Debugf("an error at cloning of projects from %v to %v: %v",
 					ret.Server.Url, ret.Target.Url, err)
 			}
 			if err = syncer.CloneGroups(); err != nil {
-				logger.Debugf("an error at cloning of groups from %v to %v: %v",
+				lg.LOG.Debugf("an error at cloning of groups from %v to %v: %v",
 					ret.Server.Url, ret.Target.Url, err)
 			}
 		}
