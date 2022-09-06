@@ -10,8 +10,8 @@ require (
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/go-ee/utils v0.0.0-20211007010138-46e0520f02ca
 	github.com/jfrog/jfrog-client-go v1.14.0
-	github.com/sirupsen/logrus v1.8.1
 	github.com/urfave/cli/v2 v2.11.2
+	go.uber.org/zap v1.23.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -53,6 +53,8 @@ require (
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
+	go.uber.org/atomic v1.9.0 // indirect
+	go.uber.org/multierr v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20220817201139-bc19a97f63c8 // indirect
 	golang.org/x/exp v0.0.0-20220827204233-334a2380cb91 // indirect
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect

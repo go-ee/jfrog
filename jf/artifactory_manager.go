@@ -10,7 +10,7 @@ import (
 	"github.com/jfrog/jfrog-client-go/artifactory/services"
 	"github.com/jfrog/jfrog-client-go/artifactory/services/utils"
 	"github.com/jfrog/jfrog-client-go/config"
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 	"strings"
 )
 
@@ -24,6 +24,7 @@ type ArtifactoryManager struct {
 	Password       string
 	Token          string
 
+	Log      *zap.SugaredLogger
 	Executor exec.Executor
 
 	urlArtifactory string
@@ -75,7 +76,7 @@ func (o *ArtifactoryManager) getOrCreateAccessToken() (ret string, err error) {
 	if len(tokens) > 0 {
 		ret = tokens[0]
 	} else {
-		logrus.Infof("create access token, not implemented yet")
+		o.Log.Infof("create access token, not implemented yet")
 		//err = fmt.Errorf("create access token, not implemented yet")
 	}
 	return
@@ -136,7 +137,7 @@ func (o *ArtifactoryManager) ChangeReplicationsStatus(enable bool) (err error) {
 	repos, err = o.GetAllRepositories()
 	for _, repo := range *repos {
 		if err = o.ChangeReplicationStatus(repo, enable); err != nil {
-			logrus.Warnf("change replication error, %v, %v", repo.Key, err)
+			o.Log.Warnf("change replication error, %v, %v", repo.Key, err)
 		}
 	}
 	return
@@ -145,7 +146,7 @@ func (o *ArtifactoryManager) ChangeReplicationsStatus(enable bool) (err error) {
 func (o *ArtifactoryManager) ChangeReplicationStatus(repo services.RepositoryDetails, enable bool) (err error) {
 	if replications, findErr := o.GetReplication(repo.Key); findErr == nil {
 
-		logrus.Debugf(o.buildLog(fmt.Sprintf("disable replication '%v'", repo.Key)))
+		o.Log.Debugf(o.buildLog(fmt.Sprintf("disable replication '%v'", repo.Key)))
 		for _, replication := range replications {
 
 			if replication.Enabled != enable {
@@ -160,7 +161,7 @@ func (o *ArtifactoryManager) ChangeReplicationStatus(repo services.RepositoryDet
 			}
 		}
 	} else {
-		logrus.Debugf(o.buildLog(fmt.Sprintf("no replication configured '%v'", repo.Key)))
+		o.Log.Debugf(o.buildLog(fmt.Sprintf("no replication configured '%v'", repo.Key)))
 	}
 
 	return

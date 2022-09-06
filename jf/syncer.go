@@ -5,7 +5,7 @@ import (
 	"github.com/go-ee/utils/stringu"
 	accessServices "github.com/jfrog/jfrog-client-go/access/services"
 	"github.com/jfrog/jfrog-client-go/artifactory/services"
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 	"reflect"
 	"strings"
 )
@@ -13,37 +13,39 @@ import (
 type Syncer struct {
 	Source *ArtifactoryManager
 	Target *ArtifactoryManager
+	Log    *zap.SugaredLogger
 
 	cloners map[RepoType]map[PackageType]RepositoryCloner
 }
 
 func NewSyncerAndConnect(source *ArtifactoryManager, target *ArtifactoryManager) (ret *Syncer, err error) {
-	ret = &Syncer{Source: source, Target: target, cloners: map[RepoType]map[PackageType]RepositoryCloner{}}
+	ret = &Syncer{Source: source, Target: target, Log: source.Log,
+		cloners: map[RepoType]map[PackageType]RepositoryCloner{}}
 	err = ret.Connect()
 	return
 }
 
 func (o *Syncer) CloneRepos() (err error) {
-	logrus.Infof("create artifactory repos from '%v' to '%v'", o.Source.Url, o.Target.Url)
+	o.Log.Infof("create artifactory repos from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
 	var repos *[]services.RepositoryDetails
 	repos, err = o.Source.GetAllRepositories()
 	for _, repo := range *repos {
 		if err = o.cloneRepo(repo); err != nil {
-			logrus.Warnf("clone error, %v, %v", repo.Key, err)
+			o.Log.Warnf("clone error, %v, %v", repo.Key, err)
 		}
 	}
 	return
 }
 
 func (o *Syncer) CloneReposAndCreateReplications() (err error) {
-	logrus.Infof("clone artifactory repos and create replications from '%v' to '%v'", o.Source.Url, o.Target.Url)
+	o.Log.Infof("clone artifactory repos and create replications from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
 	var repos *[]services.RepositoryDetails
 	repos, err = o.Source.GetAllRepositories()
 	for _, repo := range *repos {
 		if err = o.cloneRepoAndCreateReplication(repo); err != nil {
-			logrus.Warnf("clone and create replication error, %v, %v", repo.Key, err)
+			o.Log.Warnf("clone and create replication error, %v, %v", repo.Key, err)
 		}
 	}
 	return
@@ -79,7 +81,7 @@ func (o *Syncer) CreateOrUpdateReplication(repo services.RepositoryDetails) (err
 	}
 
 	if !repoExists {
-		logrus.Infof(o.Target.buildLog(
+		o.Log.Infof(o.Target.buildLog(
 			fmt.Sprintf("repository does not exists '%v', creation of replication not possible", repo.Key)))
 		return
 	}
@@ -89,7 +91,7 @@ func (o *Syncer) CreateOrUpdateReplication(repo services.RepositoryDetails) (err
 	case Local:
 		err = o.createReplicationLocal(repo)
 	default:
-		logrus.Debugf(o.Target.buildLog(
+		o.Log.Debugf(o.Target.buildLog(
 			fmt.Sprintf("no need for replication of '%v' repository '%v'", repoType, repo.Key)))
 	}
 	return
@@ -98,13 +100,13 @@ func (o *Syncer) CreateOrUpdateReplication(repo services.RepositoryDetails) (err
 func (o *Syncer) createReplicationRemote(repo services.RepositoryDetails) (err error) {
 	if _, findErr := o.Target.GetReplication(repo.Key); findErr != nil {
 		createReplicationParams := o.Source.buildCreateReplicationParams(repo)
-		logrus.Infof("create replication: %v", createReplicationParams.Url)
+		o.Log.Infof("create replication: %v", createReplicationParams.Url)
 		err = o.Target.Execute(fmt.Sprintf("create PULL replication '%v'", createReplicationParams.Url),
 			func() error {
 				return o.Target.CreateReplication(*createReplicationParams)
 			})
 	} else {
-		logrus.Infof(o.Target.buildLog(fmt.Sprintf("replication already configured '%v'", repo.Key)))
+		o.Log.Infof(o.Target.buildLog(fmt.Sprintf("replication already configured '%v'", repo.Key)))
 	}
 	return
 }
@@ -128,7 +130,7 @@ func (o *Syncer) createReplicationLocal(repo services.RepositoryDetails) (err er
 					return o.Source.UpdateReplication(*updateRepParams)
 				})
 		} else {
-			logrus.Debugf(o.Target.buildLog(fmt.Sprintf("replication already configured '%v'", repo.Key)))
+			o.Log.Debugf(o.Target.buildLog(fmt.Sprintf("replication already configured '%v'", repo.Key)))
 		}
 	}
 	return
@@ -158,7 +160,7 @@ func (o *Syncer) cloneRepo(sourceRepo services.RepositoryDetails) (err error) {
 			err = repoCloner.Clone(sourceRepo.Key)
 		}
 	} else {
-		logrus.Debugf(o.Target.buildLog("repo already exists " + sourceRepo.Key))
+		o.Log.Debugf(o.Target.buildLog("repo already exists " + sourceRepo.Key))
 	}
 	return
 }
@@ -190,7 +192,7 @@ func (o *Syncer) getRepoCloner(repoTypo RepoType, packageType PackageType) (ret 
 }
 
 func (o *Syncer) CloneUsers() (err error) {
-	logrus.Infof("create artifactory sourceItems from '%v' to '%v'", o.Source.Url, o.Target.Url)
+	o.Log.Infof("create artifactory sourceItems from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
 	var sourceItems []*services.User
 	if sourceItems, err = o.Source.GetAllUsers(); err != nil {
@@ -204,7 +206,7 @@ func (o *Syncer) CloneUsers() (err error) {
 	notExistentItems, _ := splitNonExistentAndExistentUsers(sourceItems, targetItems)
 	for _, item := range notExistentItems {
 		if err = o.cloneUser(item.Name); err != nil {
-			logrus.Warnf("clone error, %v, %v", item, err)
+			o.Log.Warnf("clone error, %v, %v", item, err)
 		}
 	}
 	return
@@ -227,13 +229,13 @@ func (o *Syncer) cloneUser(userName string) (err error) {
 	if user.Password == "" {
 		user.Password = stringu.GeneratePassword()
 	}
-	logrus.Infof("create user %v", user.Name)
+	o.Log.Infof("create user %v", user.Name)
 	err = o.Target.CreateUser(services.UserParams{UserDetails: *user})
 	return
 }
 
 func (o *Syncer) ClonePermissions() (err error) {
-	logrus.Infof("create artifactory permissions from '%v' to '%v'", o.Source.Url, o.Target.Url)
+	o.Log.Infof("create artifactory permissions from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
 	var sourceItems []*services.PermissionTargetParams
 	if sourceItems, err = o.Source.GetPermissionTargets(); err != nil {
@@ -247,13 +249,13 @@ func (o *Syncer) ClonePermissions() (err error) {
 	notExistentItems, existentItems := splitNonExistentAndExistentPermissions(sourceItems, targetItems)
 	for _, item := range notExistentItems {
 		if err = o.clonePermission(item.Name); err != nil {
-			logrus.Warnf("clone error, %v, %v", item, err)
+			o.Log.Warnf("clone error, %v, %v", item, err)
 		}
 	}
 
 	for _, item := range existentItems {
 		if err = o.updatePermission(item.Name); err != nil {
-			logrus.Warnf("update permission error, %v, %v", item, err)
+			o.Log.Warnf("update permission error, %v, %v", item, err)
 		}
 	}
 
@@ -262,7 +264,7 @@ func (o *Syncer) ClonePermissions() (err error) {
 
 func (o *Syncer) clonePermission(permissionTargetName string) (err error) {
 	if strings.HasPrefix(permissionTargetName, "INTERNAL_") {
-		logrus.Debugf("skip creation permission target %v", permissionTargetName)
+		o.Log.Debugf("skip creation permission target %v", permissionTargetName)
 		return
 	}
 
@@ -271,14 +273,14 @@ func (o *Syncer) clonePermission(permissionTargetName string) (err error) {
 		return
 	}
 
-	logrus.Infof("create permission target %v", sourcePermissionTargetParams.Name)
+	o.Log.Infof("create permission target %v", sourcePermissionTargetParams.Name)
 	err = o.Target.CreatePermissionTarget(*sourcePermissionTargetParams)
 	return
 }
 
 func (o *Syncer) updatePermission(permissionTargetName string) (err error) {
 	if strings.HasPrefix(permissionTargetName, "INTERNAL_") {
-		logrus.Debugf("skip updating permission target %v", permissionTargetName)
+		o.Log.Debugf("skip updating permission target %v", permissionTargetName)
 		return
 	}
 
@@ -292,14 +294,14 @@ func (o *Syncer) updatePermission(permissionTargetName string) (err error) {
 	}
 
 	if !reflect.DeepEqual(source, target) {
-		logrus.Infof("update permission target %v", source.Name)
+		o.Log.Infof("update permission target %v", source.Name)
 		err = o.Target.UpdatePermissionTarget(*source)
 	}
 	return
 }
 
 func (o *Syncer) CloneGroups() (err error) {
-	logrus.Infof("create artifactory groups from '%v' to '%v'", o.Source.Url, o.Target.Url)
+	o.Log.Infof("create artifactory groups from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
 	var sourceItems []*services.Group
 	if sourceItems, err = o.Source.GetGroups(); err != nil {
@@ -313,7 +315,7 @@ func (o *Syncer) CloneGroups() (err error) {
 	notExistentItems, _ := splitNonExistentAndExistentGroups(sourceItems, targetItems)
 	for _, item := range notExistentItems {
 		if err = o.cloneGroup(item.Name); err != nil {
-			logrus.Warnf("clone error, %v, %v", item, err)
+			o.Log.Warnf("clone error, %v, %v", item, err)
 		}
 	}
 	return
@@ -325,13 +327,13 @@ func (o *Syncer) cloneGroup(groupName string) (err error) {
 		return
 	}
 
-	logrus.Infof("create group %v", group.Name)
+	o.Log.Infof("create group %v", group.Name)
 	err = o.Target.CreateGroup(*wrapGroupToGroupParams(group))
 	return
 }
 
 func (o *Syncer) CloneProjects() (err error) {
-	logrus.Infof("create artifactory projects from '%v' to '%v'", o.Source.Url, o.Target.Url)
+	o.Log.Infof("create artifactory projects from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
 	var sourceItems []*accessServices.Project
 	if sourceItems, err = o.Source.ProjectService.GetAllProjects(); err != nil {
@@ -345,17 +347,17 @@ func (o *Syncer) CloneProjects() (err error) {
 	notExistentItems, _ := splitNonExistentAndExistentProjects(sourceItems, targetItems)
 	for _, item := range notExistentItems {
 		if err = o.cloneProject(item.ProjectKey); err != nil {
-			logrus.Warnf("clone project error, %v, %v", item, err)
+			o.Log.Warnf("clone project error, %v, %v", item, err)
 		}
 	}
 
 	for _, item := range sourceItems {
 		if err = o.cloneProjectRoles(item.ProjectKey); err != nil {
-			logrus.Warnf("clone project role error, %v, %v", item, err)
+			o.Log.Warnf("clone project role error, %v, %v", item, err)
 		}
 
 		if err = o.cloneProjectUsers(item.ProjectKey); err != nil {
-			logrus.Warnf("clone project user error, %v, %v", item, err)
+			o.Log.Warnf("clone project user error, %v, %v", item, err)
 		}
 	}
 	return
@@ -369,10 +371,10 @@ func (o *Syncer) cloneProject(projectKey string) (err error) {
 
 	var projectExists bool
 	if projectExists, err = o.Target.IsProjectExists(projectKey); !projectExists {
-		logrus.Infof("create project %v", sourceItem.ProjectKey)
+		o.Log.Infof("create project %v", sourceItem.ProjectKey)
 		err = o.Target.ProjectService.Create(*wrapProjectToProjectParams(sourceItem))
 	} else {
-		logrus.Debugf("project already exists %v", projectKey)
+		o.Log.Debugf("project already exists %v", projectKey)
 	}
 	return
 }
@@ -391,13 +393,13 @@ func (o *Syncer) cloneProjectRoles(projectKey string) (err error) {
 	notExistentItems, existentItems := splitNonExistentAndExistentRoles(sourceItems, targetItems)
 	for _, item := range notExistentItems {
 		if err = o.cloneProjectRole(projectKey, item); err != nil {
-			logrus.Warnf("clone error, %v, %v", item, err)
+			o.Log.Warnf("clone error, %v, %v", item, err)
 		}
 	}
 
 	for _, item := range existentItems {
 		if err = o.updateProjectRole(projectKey, item); err != nil {
-			logrus.Warnf("clone error, %v, %v", item, err)
+			o.Log.Warnf("clone error, %v, %v", item, err)
 		}
 	}
 	return
@@ -405,20 +407,20 @@ func (o *Syncer) cloneProjectRoles(projectKey string) (err error) {
 
 func (o *Syncer) cloneProjectRole(projectKey string, role *accessServices.Role) (err error) {
 	if role.Type == "PREDEFINED" || role.Type == "ADMIN" {
-		logrus.Infof("skip creation of %v project '%v' role '%v'", role.Type, projectKey, role.Name)
+		o.Log.Infof("skip creation of %v project '%v' role '%v'", role.Type, projectKey, role.Name)
 		return
 	}
-	logrus.Infof("create project '%v' role '%v'", projectKey, role.Name)
+	o.Log.Infof("create project '%v' role '%v'", projectKey, role.Name)
 	err = o.Target.ProjectService.CreateRole(projectKey, role)
 	return
 }
 
 func (o *Syncer) updateProjectRole(projectKey string, role *accessServices.Role) (err error) {
 	if role.Type == "PREDEFINED" || role.Type == "ADMIN" {
-		logrus.Infof("skip updating of %v project '%v' role '%v'", role.Type, projectKey, role.Name)
+		o.Log.Infof("skip updating of %v project '%v' role '%v'", role.Type, projectKey, role.Name)
 		return
 	}
-	logrus.Infof("update project '%v' role '%v'", projectKey, role.Name)
+	o.Log.Infof("update project '%v' role '%v'", projectKey, role.Name)
 	err = o.Target.ProjectService.CreateRole(projectKey, role)
 	return
 }
@@ -437,26 +439,26 @@ func (o *Syncer) cloneProjectUsers(projectKey string) (err error) {
 	notExistentItems, existentItems := findNonExistentProjectUsers(sourceItems.Members, targetItems.Members)
 	for _, item := range notExistentItems {
 		if err = o.cloneProjectUser(projectKey, item); err != nil {
-			logrus.Warnf("clone error, %v, %v", item, err)
+			o.Log.Warnf("clone error, %v, %v", item, err)
 		}
 	}
 
 	for _, item := range existentItems {
 		if err = o.updateProjectUser(projectKey, item); err != nil {
-			logrus.Warnf("update error, %v, %v", item, err)
+			o.Log.Warnf("update error, %v, %v", item, err)
 		}
 	}
 	return
 }
 
 func (o *Syncer) cloneProjectUser(projectKey string, user *accessServices.ProjectUser) (err error) {
-	logrus.Infof("create project '%v' user '%v'", projectKey, user.Name)
+	o.Log.Infof("create project '%v' user '%v'", projectKey, user.Name)
 	err = o.Target.ProjectService.UpdateUser(projectKey, user)
 	return
 }
 
 func (o *Syncer) updateProjectUser(projectKey string, user *accessServices.ProjectUser) (err error) {
-	logrus.Infof("update project '%v' user '%v'", projectKey, user.Name)
+	o.Log.Infof("update project '%v' user '%v'", projectKey, user.Name)
 	err = o.Target.ProjectService.UpdateUser(projectKey, user)
 	return
 }

@@ -2,19 +2,20 @@ package cmd
 
 import (
 	"github.com/go-ee/jfrog/jf"
-	"github.com/sirupsen/logrus"
+	"github.com/go-ee/utils/cliu"
+	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
 )
 
 type CipherCmd struct {
-	*cli.Command
+	*cliu.BaseCommand
 	MasterKeyFlag *MasterKeyFlag
 	SecretFlag    *SecretFlag
 }
 
 func NewCipherCmd() (ret *CipherCmd) {
 	ret = &CipherCmd{
-		Command:       &cli.Command{},
+		BaseCommand:   &cliu.BaseCommand{Log: lg.NewZapProdLogger()},
 		MasterKeyFlag: NewMasterKeyFlag(),
 		SecretFlag:    NewSecretFlag(),
 	}
@@ -36,7 +37,7 @@ func NewCipherCmd() (ret *CipherCmd) {
 
 		var decrypted []byte
 		if decrypted, err = cipher.Decrypt(ret.SecretFlag.CurrentValue); err == nil {
-			logrus.Infof("decrypted: %s", decrypted)
+			ret.Log.Infof("decrypted: %s", decrypted)
 		}
 		return
 	}

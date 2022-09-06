@@ -3,12 +3,16 @@ package main
 import (
 	"github.com/go-ee/jfrog/cmd"
 	"github.com/go-ee/utils/cliu"
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 	"os"
 )
 
 func main() {
 	args := os.Args
+
+	logger, _ := zap.NewProduction()
+	defer logger.Sync() // flushes buffer, if any
+	sugar := logger.Sugar()
 
 	common := cliu.NewCommonFlags()
 	common.BeforeApp(args)
@@ -17,9 +21,9 @@ func main() {
 		common, "jfrog", `JFrog utilities`)
 
 	if err := app.Run(args); err != nil {
-		logrus.Infof("exit with error: %v", err.Error())
-		logrus.Exit(1)
+		sugar.Infof("exit with error: %v", err)
+		os.Exit(1)
 	} else {
-		logrus.Exit(0)
+		os.Exit(0)
 	}
 }

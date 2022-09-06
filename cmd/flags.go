@@ -4,26 +4,29 @@ import (
 	"fmt"
 	"github.com/go-ee/utils/cliu"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 	"strings"
 )
 
-type ServerFlagLabels struct {
+type ServerDef struct {
 	Url      *UrlFlag
 	User     *UserFlag
 	Password *PasswordTag
 	Token    *TokenTag
+	Log      *zap.SugaredLogger
 }
 
-func NewServerDef(label string) *ServerFlagLabels {
-	return &ServerFlagLabels{
+func NewServerDef(label string, log *zap.SugaredLogger) *ServerDef {
+	return &ServerDef{
 		Url:      NewUrlFlag(buildLabelCommandPrefix(label)),
 		User:     NewUserFlag(buildLabelCommandPrefix(label)),
 		Password: NewPasswordFlag(buildLabelCommandPrefix(label)),
 		Token:    NewTokenTag(buildLabelCommandPrefix(label)),
+		Log:      log,
 	}
 }
 
-func (o *ServerFlagLabels) BuildLabel() (ret string) {
+func (o *ServerDef) BuildLabel() (ret string) {
 	ret = strings.TrimPrefix(o.Url.CurrentValue, "https://")
 	ret = strings.Split(ret, ".")[0]
 	return ret
