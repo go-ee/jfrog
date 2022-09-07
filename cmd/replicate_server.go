@@ -6,17 +6,17 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type CloneServersCmd struct {
+type ReplicateServersCmd struct {
 	*DoubleServerCmd
 }
 
-func NewCloneServesCmd() (ret *CloneServersCmd) {
-	ret = &CloneServersCmd{
+func NewReplicateServesCmd() (ret *ReplicateServersCmd) {
+	ret = &ReplicateServersCmd{
 		DoubleServerCmd: NewDoubleServerCmd(),
 	}
 
 	ret.Command = &cli.Command{
-		Name:  "clone-server",
+		Name:  "replicate-server",
 		Usage: "Create repositories, users, etc. of source Artifactory server in target server",
 		Flags: []cli.Flag{
 			ret.Server.Url, ret.Server.User, ret.Server.Password, ret.Server.Token,
