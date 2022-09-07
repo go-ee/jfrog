@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/go-ee/jfrog/jf"
+	"github.com/go-ee/jfrog/jfrog"
 	"github.com/urfave/cli/v2"
 )
 
@@ -26,7 +26,7 @@ func NewExportMetaDataCmd() (ret *ExportMetaDataCmd) {
 	}
 
 	ret.Command.Action = func(context *cli.Context) (err error) {
-		var artifactoryManager *jf.ArtifactoryManager
+		var artifactoryManager *jfrog.ArtifactoryManager
 		if artifactoryManager, err = ret.Server.buildArtifactoryManagerAndConnect(ret.DryRunFlag); err == nil {
 			err = artifactoryManager.ExportMetadata(ret.ServerPathFlag.CurrentValue)
 		}

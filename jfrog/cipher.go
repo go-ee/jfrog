@@ -1,4 +1,4 @@
-package jf
+package jfrog
 
 import (
 	"bytes"

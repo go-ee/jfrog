@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/go-ee/jfrog/jf"
+	"github.com/go-ee/jfrog/jfrog"
 	"github.com/go-ee/utils/cliu"
 	"github.com/go-ee/utils/exec"
 	"github.com/urfave/cli/v2"
@@ -72,10 +72,10 @@ func NewDoubleServerCmd() *DoubleServerCmd {
 		DryRunFlag: NewDryRunFlag()}
 }
 
-func (o *DoubleServerCmd) buildSyncerAndConnect() (ret *jf.Syncer, err error) {
+func (o *DoubleServerCmd) buildSyncerAndConnect() (ret *jfrog.Syncer, err error) {
 	executor := buildExecutor(o.DryRunFlag)
 
-	ret, err = jf.NewSyncerAndConnect(
+	ret, err = jfrog.NewSyncerAndConnect(
 		buildArtifactoryManager(o.Server, executor),
 		buildArtifactoryManager(o.Target, executor))
 	return
@@ -91,7 +91,7 @@ func buildExecutor(dryRunFlag *DryRunFlag) (ret exec.Executor) {
 }
 
 func (o *ServerDef) buildArtifactoryManagerAndConnect(
-	dryRunFlag *DryRunFlag) (ret *jf.ArtifactoryManager, err error) {
+	dryRunFlag *DryRunFlag) (ret *jfrog.ArtifactoryManager, err error) {
 
 	executor := buildExecutor(dryRunFlag)
 
@@ -100,8 +100,8 @@ func (o *ServerDef) buildArtifactoryManagerAndConnect(
 	return
 }
 
-func buildArtifactoryManager(server *ServerDef, executor exec.Executor) *jf.ArtifactoryManager {
-	return &jf.ArtifactoryManager{
+func buildArtifactoryManager(server *ServerDef, executor exec.Executor) *jfrog.ArtifactoryManager {
+	return &jfrog.ArtifactoryManager{
 		Label:    server.BuildLabel(),
 		Url:      server.Url.NormalizedUrl(),
 		User:     server.User.CurrentValue,
@@ -113,7 +113,7 @@ func buildArtifactoryManager(server *ServerDef, executor exec.Executor) *jf.Arti
 }
 
 func buildArtifactoryManagerAndConnect(
-	server *ServerDef, executor exec.Executor) (ret *jf.ArtifactoryManager, err error) {
+	server *ServerDef, executor exec.Executor) (ret *jfrog.ArtifactoryManager, err error) {
 	ret = buildArtifactoryManager(server, executor)
 	err = ret.Connect()
 	return

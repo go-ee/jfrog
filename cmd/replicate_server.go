@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/go-ee/jfrog/jf"
+	"github.com/go-ee/jfrog/jfrog"
 	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
 )
@@ -26,7 +26,7 @@ func NewReplicateServesCmd() (ret *ReplicateServersCmd) {
 	}
 
 	ret.Command.Action = func(context *cli.Context) (err error) {
-		var syncer *jf.Syncer
+		var syncer *jfrog.Syncer
 		if syncer, err = ret.buildSyncerAndConnect(); err == nil {
 			if err = syncer.CloneUsers(); err != nil {
 				lg.LOG.Debugf("an error at cloning of users from %v to %v: %v",

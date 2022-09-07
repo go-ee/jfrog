@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/go-ee/jfrog/jf"
+	"github.com/go-ee/jfrog/jfrog"
 	"github.com/go-ee/utils/cliu"
 	"github.com/go-ee/utils/lg"
 	"github.com/urfave/cli/v2"
@@ -30,8 +30,8 @@ func NewCipherCmd() (ret *CipherCmd) {
 	}
 
 	ret.Command.Action = func(context *cli.Context) (err error) {
-		var cipher *jf.Cipher
-		if cipher, err = jf.NewCipher(ret.MasterKeyFlag.CurrentValue); err != nil {
+		var cipher *jfrog.Cipher
+		if cipher, err = jfrog.NewCipher(ret.MasterKeyFlag.CurrentValue); err != nil {
 			return
 		}
 

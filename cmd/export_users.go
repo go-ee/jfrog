@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/go-ee/jfrog/jf"
+	"github.com/go-ee/jfrog/jfrog"
 	"github.com/jfrog/jfrog-client-go/artifactory/services"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
@@ -30,7 +30,7 @@ func NewExportUsersCmd() (ret *ExportUsersCmd) {
 	}
 
 	ret.Command.Action = func(context *cli.Context) (err error) {
-		var artifactoryManager *jf.ArtifactoryManager
+		var artifactoryManager *jfrog.ArtifactoryManager
 		if artifactoryManager, err = ret.Server.buildArtifactoryManagerAndConnect(ret.DryRunFlag); err == nil {
 			var users []*services.User
 			if users, err = artifactoryManager.GetAllUsers(); err != nil {
