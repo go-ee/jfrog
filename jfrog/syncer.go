@@ -191,7 +191,7 @@ func (o *Syncer) getRepoCloner(repoTypo RepoType, packageType PackageType) (ret 
 }
 
 func (o *Syncer) CloneUsers() (err error) {
-	lg.LOG.Infof("create artifactory sourceItems from '%v' to '%v'", o.Source.Url, o.Target.Url)
+	lg.LOG.Infof("clone artifactory users from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
 	var sourceItems []*services.User
 	if sourceItems, err = o.Source.GetAllUsers(); err != nil {

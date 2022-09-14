@@ -143,6 +143,12 @@ func (o *ArtifactoryManager) ChangeReplicationsStatus(enable bool) (err error) {
 
 func (o *ArtifactoryManager) ChangeReplicationStatus(repo services.RepositoryDetails, enable bool) (err error) {
 	if replications, findErr := o.GetReplication(repo.Key); findErr == nil {
+		var action string
+		if enable {
+			action = "enable"
+		} else {
+			action = "disable"
+		}
 
 		lg.LOG.Debugf(o.buildLog(fmt.Sprintf("disable replication '%v'", repo.Key)))
 		for _, replication := range replications {
@@ -152,7 +158,7 @@ func (o *ArtifactoryManager) ChangeReplicationStatus(repo services.RepositoryDet
 				updateReplicationParams := services.NewUpdateReplicationParams()
 				updateReplicationParams.ReplicationParams = replication
 
-				err = o.Execute(fmt.Sprintf("disable replication '%v'", replication.Url),
+				err = o.Execute(fmt.Sprintf("%v replication '%v'", action, replication.Url),
 					func() error {
 						return o.UpdateReplication(updateReplicationParams)
 					})
@@ -279,8 +285,6 @@ func buildRepoPackageTypeUrlPrefix(repo services.RepositoryDetails) (ret string)
 		ret = "api/puppet/"
 	case RubyGems:
 		ret = "api/gems/"
-	case GitLfs:
-		ret = "api/lfs"
 	}
 	return
 }
