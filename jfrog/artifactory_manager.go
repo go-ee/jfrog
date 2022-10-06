@@ -130,6 +130,54 @@ func (o *ArtifactoryManager) EnableReplication(repo services.RepositoryDetails) 
 	return
 }
 
+func (o *ArtifactoryManager) CollectUsersByAccessLevels() (ret map[string][]string, err error) {
+	ret = map[string][]string{}
+	accessLevelToUsers := map[string]map[string]bool{}
+	var permissionTargets []*services.PermissionTargetParams
+	if permissionTargets, err = o.GetPermissionTargets(); err != nil {
+		return
+	}
+
+	for _, permissionTargetDef := range permissionTargets {
+		if permissionTarget, permTargetErr := o.GetPermissionTarget(permissionTargetDef.Name); permTargetErr == nil {
+			if permissionTarget.Repo != nil && permissionTarget.Repo.Actions != nil && permissionTarget.Repo.Actions.Users != nil {
+				for user, accessLevels := range permissionTarget.Repo.Actions.Users {
+					for _, accessLevel := range accessLevels {
+						usersByLevel := accessLevelToUsers[accessLevel]
+						if usersByLevel == nil {
+							usersByLevel = map[string]bool{}
+							accessLevelToUsers[accessLevel] = usersByLevel
+						}
+						usersByLevel[user] = true
+					}
+				}
+			}
+		}
+	}
+
+	for accessLevel, users := range accessLevelToUsers {
+		ret[accessLevel] = GetKeys(users)
+	}
+	return
+}
+
+func Contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func GetKeys(m map[string]bool) (ret []string) {
+	ret = make([]string, 0, len(m))
+	for k, _ := range m {
+		ret = append(ret, k)
+	}
+	return
+}
+
 func (o *ArtifactoryManager) ChangeReplicationsStatus(enable bool) (err error) {
 	var repos *[]services.RepositoryDetails
 	repos, err = o.GetAllRepositories()

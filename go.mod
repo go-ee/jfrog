@@ -11,7 +11,6 @@ require (
 	github.com/go-ee/utils v0.0.0-20211007010138-46e0520f02ca
 	github.com/jfrog/jfrog-client-go v1.14.0
 	github.com/urfave/cli/v2 v2.11.2
-	go.uber.org/zap v1.23.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -33,7 +32,7 @@ require (
 	github.com/gookit/color v1.5.1 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
-	github.com/jfrog/build-info-go v1.5.1 // indirect
+	github.com/jfrog/build-info-go v1.6.0 // indirect
 	github.com/jfrog/gofrog v1.2.1 // indirect
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
@@ -55,6 +54,7 @@ require (
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
+	go.uber.org/zap v1.23.0 // indirect
 	golang.org/x/crypto v0.0.0-20220817201139-bc19a97f63c8 // indirect
 	golang.org/x/exp v0.0.0-20220827204233-334a2380cb91 // indirect
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
