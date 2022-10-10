@@ -29,7 +29,7 @@ func NewCloneRepoCmd() (ret *CloneRepoCmd) {
 	ret.Command.Action = func(context *cli.Context) (err error) {
 		var syncer *jfrog.Syncer
 		if syncer, err = ret.buildSyncerAndConnect(); err == nil {
-			err = syncer.CloneRepo(ret.RepoKeyFlag.CurrentValue)
+			err = syncer.CloneRepoAndCreateReplication(ret.RepoKeyFlag.CurrentValue)
 		}
 		return
 	}

@@ -117,6 +117,17 @@ func NewRepoKeyFlag() *RepoKeyFlag {
 	})}
 }
 
+type PackageTypeFlag struct {
+	*cliu.StringFlag
+}
+
+func NewPackageTypeFlag() *PackageTypeFlag {
+	return &PackageTypeFlag{cliu.NewStringFlag(&cli.StringFlag{
+		Name:  fmt.Sprintf("package-type"),
+		Usage: fmt.Sprintf("Package type"),
+	})}
+}
+
 type MasterKeyFlag struct {
 	*cliu.StringFlag
 }

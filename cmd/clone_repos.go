@@ -7,11 +7,13 @@ import (
 
 type CloneReposCmd struct {
 	*DoubleServerCmd
+	PackageTypeFlag *PackageTypeFlag
 }
 
 func NewCloneReposCmd() (ret *CloneReposCmd) {
 	ret = &CloneReposCmd{
 		DoubleServerCmd: NewDoubleServerCmd(),
+		PackageTypeFlag: NewPackageTypeFlag(),
 	}
 
 	ret.Command = &cli.Command{
@@ -20,6 +22,7 @@ func NewCloneReposCmd() (ret *CloneReposCmd) {
 		Flags: []cli.Flag{
 			ret.Server.Url, ret.Server.User, ret.Server.Password, ret.Server.Token,
 			ret.Target.Url, ret.Target.User, ret.Target.Password, ret.Target.Token,
+			ret.PackageTypeFlag,
 			ret.DryRunFlag,
 		},
 	}
@@ -27,7 +30,7 @@ func NewCloneReposCmd() (ret *CloneReposCmd) {
 	ret.Command.Action = func(context *cli.Context) (err error) {
 		var syncer *jfrog.Syncer
 		if syncer, err = ret.buildSyncerAndConnect(); err == nil {
-			err = syncer.CloneReposAndCreateReplications()
+			err = syncer.CloneReposAndCreateReplications(ret.PackageTypeFlag.CurrentValue)
 		}
 		return
 	}

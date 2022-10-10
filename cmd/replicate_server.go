@@ -32,7 +32,7 @@ func NewReplicateServesCmd() (ret *ReplicateServersCmd) {
 				lg.LOG.Debugf("an error at cloning of users from %v to %v: %v",
 					ret.Server.Url, ret.Target.Url, err)
 			}
-			if err = syncer.CloneReposAndCreateReplications(); err != nil {
+			if err = syncer.CloneReposAndCreateReplications(""); err != nil {
 				lg.LOG.Debugf("an error at cloning of repos from %v to %v: %v",
 					ret.Server.Url, ret.Target.Url, err)
 			}

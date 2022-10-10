@@ -37,14 +37,25 @@ func (o *Syncer) CloneRepos() (err error) {
 	return
 }
 
-func (o *Syncer) CloneReposAndCreateReplications() (err error) {
+func (o *Syncer) CloneReposAndCreateReplications(packageType string) (err error) {
 	lg.LOG.Infof("clone artifactory repos and create replications from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
 	var repos *[]services.RepositoryDetails
 	repos, err = o.Source.GetAllRepositories()
-	for _, repo := range *repos {
-		if err = o.cloneRepoAndCreateReplication(repo); err != nil {
-			lg.LOG.Warnf("clone and create replication error, %v, %v", repo.Key, err)
+	if packageType == "" {
+		for _, repo := range *repos {
+			if err = o.cloneRepoAndCreateReplication(repo); err != nil {
+				lg.LOG.Warnf("clone and create replication error, %v, %v", repo.Key, err)
+			}
+		}
+	} else {
+		packageTypeLowCase := strings.ToLower(packageType)
+		for _, repo := range *repos {
+			if packageTypeLowCase == strings.ToLower(repo.PackageType) {
+				if err = o.cloneRepoAndCreateReplication(repo); err != nil {
+					lg.LOG.Warnf("clone and create replication error, %v, %v", repo.Key, err)
+				}
+			}
 		}
 	}
 	return
@@ -135,10 +146,10 @@ func (o *Syncer) createReplicationLocal(repo services.RepositoryDetails) (err er
 	return
 }
 
-func (o *Syncer) CloneRepo(repoKey string) (err error) {
+func (o *Syncer) CloneRepoAndCreateReplication(repoKey string) (err error) {
 	var repo services.RepositoryDetails
 	if err = o.Source.GetRepository(repoKey, &repo); err == nil {
-		err = o.cloneRepo(repo)
+		err = o.cloneRepoAndCreateReplication(repo)
 	}
 	return
 }
