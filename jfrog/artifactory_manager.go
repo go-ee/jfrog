@@ -324,8 +324,8 @@ func buildRepoPackageTypeUrlPrefix(repo services.RepositoryDetails) (ret string)
 		ret = "api/docker/"
 	case Go:
 		ret = "api/go/"
-	//case NuGet:
-	//	ret = "api/nuget/"
+	case NuGet:
+		ret = "api/nuget/"
 	case Npm:
 		ret = "api/npm/"
 	case PhpComposer:
