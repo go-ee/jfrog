@@ -28,7 +28,7 @@ func NewCli(common *cliu.CommonFlags, appName string, usage string) (ret *Cli) {
 	}
 
 	app.Commands = []*cli.Command{
-		NewReplicateServesCmd().Command,
+		NewCloneServesCmd().Command,
 		NewCloneRepoCmd().Command,
 		NewCloneReposCmd().Command,
 		NewEnableReplicationsCmd().Command,

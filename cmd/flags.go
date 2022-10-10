@@ -128,6 +128,18 @@ func NewPackageTypeFlag() *PackageTypeFlag {
 	})}
 }
 
+type ReplicationFlag struct {
+	*cliu.BoolFlag
+}
+
+func NewReplicationFlag() *ReplicationFlag {
+	return &ReplicationFlag{cliu.NewBoolFlag(&cli.BoolFlag{
+		Name:  fmt.Sprintf("replicate"),
+		Usage: fmt.Sprintf("Create replication definition of local repo or not"),
+		Value: false,
+	})}
+}
+
 type MasterKeyFlag struct {
 	*cliu.StringFlag
 }

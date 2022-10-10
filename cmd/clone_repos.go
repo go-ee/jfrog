@@ -8,12 +8,14 @@ import (
 type CloneReposCmd struct {
 	*DoubleServerCmd
 	PackageTypeFlag *PackageTypeFlag
+	ReplicationFlag *ReplicationFlag
 }
 
 func NewCloneReposCmd() (ret *CloneReposCmd) {
 	ret = &CloneReposCmd{
 		DoubleServerCmd: NewDoubleServerCmd(),
 		PackageTypeFlag: NewPackageTypeFlag(),
+		ReplicationFlag: NewReplicationFlag(),
 	}
 
 	ret.Command = &cli.Command{
@@ -30,7 +32,8 @@ func NewCloneReposCmd() (ret *CloneReposCmd) {
 	ret.Command.Action = func(context *cli.Context) (err error) {
 		var syncer *jfrog.Syncer
 		if syncer, err = ret.buildSyncerAndConnect(); err == nil {
-			err = syncer.CloneReposAndCreateReplications(ret.PackageTypeFlag.CurrentValue)
+			err = syncer.CloneRepos(
+				ret.PackageTypeFlag.CurrentValue, ret.ReplicationFlag.CurrentValue)
 		}
 		return
 	}

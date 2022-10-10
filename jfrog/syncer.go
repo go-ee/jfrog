@@ -24,27 +24,15 @@ func NewSyncerAndConnect(source *ArtifactoryManager, target *ArtifactoryManager)
 	return
 }
 
-func (o *Syncer) CloneRepos() (err error) {
-	lg.LOG.Infof("create artifactory repos from '%v' to '%v'", o.Source.Url, o.Target.Url)
-
-	var repos *[]services.RepositoryDetails
-	repos, err = o.Source.GetAllRepositories()
-	for _, repo := range *repos {
-		if err = o.cloneRepo(repo); err != nil {
-			lg.LOG.Warnf("clone error, %v, %v", repo.Key, err)
-		}
-	}
-	return
-}
-
-func (o *Syncer) CloneReposAndCreateReplications(packageType string) (err error) {
-	lg.LOG.Infof("clone artifactory repos and create replications from '%v' to '%v'", o.Source.Url, o.Target.Url)
+func (o *Syncer) CloneRepos(packageType string, createReplication bool) (err error) {
+	lg.LOG.Infof(
+		"clone artifactory repos and create replications from '%v' to '%v'", o.Source.Url, o.Target.Url)
 
 	var repos *[]services.RepositoryDetails
 	repos, err = o.Source.GetAllRepositories()
 	if packageType == "" {
 		for _, repo := range *repos {
-			if err = o.cloneRepoAndCreateReplication(repo); err != nil {
+			if err = o.cloneRepoAndCreateReplication(repo, createReplication); err != nil {
 				lg.LOG.Warnf("clone and create replication error, %v, %v", repo.Key, err)
 			}
 		}
@@ -52,7 +40,7 @@ func (o *Syncer) CloneReposAndCreateReplications(packageType string) (err error)
 		packageTypeLowCase := strings.ToLower(packageType)
 		for _, repo := range *repos {
 			if packageTypeLowCase == strings.ToLower(repo.PackageType) {
-				if err = o.cloneRepoAndCreateReplication(repo); err != nil {
+				if err = o.cloneRepoAndCreateReplication(repo, createReplication); err != nil {
 					lg.LOG.Warnf("clone and create replication error, %v, %v", repo.Key, err)
 				}
 			}
@@ -61,17 +49,19 @@ func (o *Syncer) CloneReposAndCreateReplications(packageType string) (err error)
 	return
 }
 
-func (o *Syncer) CloneAndCreateReplication(repoKey string) (err error) {
+func (o *Syncer) Clone(repoKey string, createReplication bool) (err error) {
 	var repo services.RepositoryDetails
 	if err = o.Source.GetRepository(repoKey, &repo); err == nil {
-		err = o.cloneRepoAndCreateReplication(repo)
+		err = o.cloneRepoAndCreateReplication(repo, createReplication)
 	}
 	return
 }
 
-func (o *Syncer) cloneRepoAndCreateReplication(repo services.RepositoryDetails) (err error) {
+func (o *Syncer) cloneRepoAndCreateReplication(repo services.RepositoryDetails, createReplication bool) (err error) {
 	if err = o.cloneRepo(repo); err == nil {
-		err = o.CreateOrUpdateReplication(repo)
+		if createReplication {
+			err = o.CreateOrUpdateReplication(repo)
+		}
 	}
 	return
 }
@@ -146,10 +136,10 @@ func (o *Syncer) createReplicationLocal(repo services.RepositoryDetails) (err er
 	return
 }
 
-func (o *Syncer) CloneRepoAndCreateReplication(repoKey string) (err error) {
+func (o *Syncer) CloneRepo(repoKey string, createReplication bool) (err error) {
 	var repo services.RepositoryDetails
 	if err = o.Source.GetRepository(repoKey, &repo); err == nil {
-		err = o.cloneRepoAndCreateReplication(repo)
+		err = o.cloneRepoAndCreateReplication(repo, createReplication)
 	}
 	return
 }

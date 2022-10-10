@@ -6,17 +6,19 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-type ReplicateServersCmd struct {
+type CloneServersCmd struct {
 	*DoubleServerCmd
+	ReplicationFlag *ReplicationFlag
 }
 
-func NewReplicateServesCmd() (ret *ReplicateServersCmd) {
-	ret = &ReplicateServersCmd{
+func NewCloneServesCmd() (ret *CloneServersCmd) {
+	ret = &CloneServersCmd{
 		DoubleServerCmd: NewDoubleServerCmd(),
+		ReplicationFlag: NewReplicationFlag(),
 	}
 
 	ret.Command = &cli.Command{
-		Name:  "replicate-server",
+		Name:  "clone-server",
 		Usage: "Create repositories, users, etc. of source Artifactory server in target server",
 		Flags: []cli.Flag{
 			ret.Server.Url, ret.Server.User, ret.Server.Password, ret.Server.Token,
@@ -32,7 +34,7 @@ func NewReplicateServesCmd() (ret *ReplicateServersCmd) {
 				lg.LOG.Debugf("an error at cloning of users from %v to %v: %v",
 					ret.Server.Url, ret.Target.Url, err)
 			}
-			if err = syncer.CloneReposAndCreateReplications(""); err != nil {
+			if err = syncer.CloneRepos("", ret.ReplicationFlag.CurrentValue); err != nil {
 				lg.LOG.Debugf("an error at cloning of repos from %v to %v: %v",
 					ret.Server.Url, ret.Target.Url, err)
 			}

@@ -7,13 +7,15 @@ import (
 
 type CloneRepoCmd struct {
 	*DoubleServerCmd
-	RepoKeyFlag *RepoKeyFlag
+	RepoKeyFlag     *RepoKeyFlag
+	ReplicationFlag *ReplicationFlag
 }
 
 func NewCloneRepoCmd() (ret *CloneRepoCmd) {
 	ret = &CloneRepoCmd{
 		DoubleServerCmd: NewDoubleServerCmd(),
 		RepoKeyFlag:     NewRepoKeyFlag(),
+		ReplicationFlag: NewReplicationFlag(),
 	}
 
 	ret.Command = &cli.Command{
@@ -29,7 +31,7 @@ func NewCloneRepoCmd() (ret *CloneRepoCmd) {
 	ret.Command.Action = func(context *cli.Context) (err error) {
 		var syncer *jfrog.Syncer
 		if syncer, err = ret.buildSyncerAndConnect(); err == nil {
-			err = syncer.CloneRepoAndCreateReplication(ret.RepoKeyFlag.CurrentValue)
+			err = syncer.CloneRepo(ret.RepoKeyFlag.CurrentValue, ret.ReplicationFlag.CurrentValue)
 		}
 		return
 	}
