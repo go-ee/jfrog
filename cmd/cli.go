@@ -41,6 +41,7 @@ func NewCli(common *cliu.CommonFlags, appName string, usage string) (ret *Cli) {
 		NewExportUsersCmd().Command,
 		NewExportMetaDataCmd().Command,
 		NewCollectUsersByAccessLevelsCmd().Command,
+		NewCollectTrashCan().Command,
 		cliu.NewMarkdownCmd(ret.App).Command,
 	}
 	return

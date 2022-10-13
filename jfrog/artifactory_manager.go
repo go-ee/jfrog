@@ -111,6 +111,22 @@ func (o *ArtifactoryManager) buildConfig(url string, accessToken string) (ret co
 	return
 }
 
+func (o *ArtifactoryManager) CollectTrashCan() (ret *utils.FileListResponse, err error) {
+	params := utils.FileListParams{
+		Deep:               true,
+		Depth:              -1,
+		ListFolders:        true,
+		MetadataTimestamps: true,
+		IncludeRootPath:    true,
+	}
+
+	if ret, err = o.FileList("auto-trashcan", params); err != nil {
+		return
+	}
+
+	return
+}
+
 func (o *ArtifactoryManager) EnableReplications() (err error) {
 	err = o.ChangeReplicationsStatus(true)
 	return

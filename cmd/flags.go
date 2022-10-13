@@ -203,3 +203,14 @@ func NewServerPathFlag() *ServerPathFlag {
 		Value: "/tmp/export",
 	})}
 }
+
+type OutputFileFlag struct {
+	*cliu.StringFlag
+}
+
+func NewOutputFileFlag(label string) *OutputFileFlag {
+	return &OutputFileFlag{cliu.NewStringFlag(&cli.StringFlag{
+		Name:  fmt.Sprintf("%voutput", label),
+		Usage: fmt.Sprintf("The output %vfile.", label),
+	})}
+}
